@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import PatientDashboard from './pages/PatientDashboard';
 import ClinicDashboard from './pages/ClinicDashboard';
-import './App.css';
 
 function App() {
   return (
