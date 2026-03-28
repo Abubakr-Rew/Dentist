@@ -1,16 +1,11 @@
-# React + Vite
+Griffith: Почему большинство мужчин посвящают себя кровопролитию? Вы спросили меня об этом на охоте, моя госпожа. 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Griffith: Действительно, у мужчин может быть варварская сторона, как вы и указали. Однако это инструмент, который можно использовать как для обретения, так и для защиты ценных вещей. Это обоюдоострый меч.
 
-Currently, two official plugins are available:
+Princess Charlotte: Ценные вещи? Такие как семья... или возлюбленные?
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Griffith: Для некоторых мужчин такие вещи действительно дороги. Но есть еще одна вещь, более ценная для мужчины, чем все остальное... То, к чему человек стремится ради себя, а не ради кого-то другого. Мечта. Некоторые мечтают править миром, посвящая всю свою жизнь созданию идеального меча. В то время как некоторые могут быть достигнуты в одиночку, некоторые подобны бурям... разрушающим сотни или тысячи других мечтаний на своем пути. Мечта может укрепить жизнь человека, или же принести ему страдания. Мечта может заставить человека почувствовать себя живым, или же убить его. Даже если человек будет покинут этой мечтой, часть ее останется тлеть в его сердце. Каждый человек представлял себе свою жизнь таким образом, хотя бы раз. Жизнь как мученика своей мечты, своего Бога. Просто существовать только потому, что ты родился - это та самая идея, которую я ненавижу. Я этого терпеть не могу.
 
-## React Compiler
+Princess Charlotte: Вы восхитительны... Ваши друзья, должно быть, тоже очарованы вашим обаянием.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Griffith: Они мои благородные солдаты. Они важные товарищи, которые посвящают себя моей мечте. Однако они не обязательно мои друзья. В моих глазах настоящий друг - это тот, кто никогда не цепляется за чужую мечту. Независимый человек, который может найти свою собственную причину жить и следовать этому пути без руководства. И если кто-то попытается сокрушить его мечту, защищайте ее всем сердцем и душой. Даже если этим человеком окажусь я. Для меня настоящий друг - это тот, кого я считаю своим равным.

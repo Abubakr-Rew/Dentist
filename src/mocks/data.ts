@@ -248,7 +248,7 @@ export const mockClinics: Clinic[] = [
     city: "Алматы",
     phone: "+7 (727) 555-11-22",
     rating: 4.5,
-    image: "https://images.unsplash.com/photo-1629909615032-9d402ab68eb7?w=600",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600",
     description: "Эстетическая стоматология и косметологические процедуры. Работаем без выходных.",
     dentists: [
       {

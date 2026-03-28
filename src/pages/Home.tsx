@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import { Search, MapPin, Star } from "lucide-react";
-import { Button, Input, Card, CardContent } from "../components/ui";
+import { MagnifyingGlass, Hospital, Star } from "@phosphor-icons/react";
+import { Button, Card, CardContent } from "../components/ui";
 import { mockClinics } from "../mocks/data";
 
 export default function Home() {
@@ -28,7 +28,7 @@ export default function Home() {
           <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-lg border border-slate-100 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400" />
+                <MagnifyingGlass size={20} className="text-slate-400" />
               </div>
               <input
                 type="text"
@@ -41,7 +41,7 @@ export default function Home() {
             
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <MapPin className="h-5 w-5 text-slate-400" />
+                <Hospital size={20} className="text-slate-400" />
               </div>
               <input
                 type="text"
@@ -86,7 +86,7 @@ export default function Home() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
                 <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <Star size={16} weight="fill" className="text-amber-400" />
                   <span className="font-semibold text-sm text-slate-800">{clinic.rating}</span>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export default function Home() {
                     {clinic.name}
                   </h3>
                   <div className="flex items-center text-slate-500 text-sm gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
+                    <Hospital size={14} />
                     <span className="truncate">{clinic.city}, {clinic.address}</span>
                   </div>
                 </div>

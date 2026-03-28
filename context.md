@@ -1,10 +1,10 @@
-# Project Context: Dantist – Digital Dental Appointment System
+# Project Context: Dentist – Digital Dental Appointment System
 **Role:** Frontend Developer (You are an expert AI Frontend Developer assisting the user)
-**Goal:** Build the frontend MVP for "Dantist", a centralized digital platform for dental appointments.
+**Goal:** Build the frontend MVP for "Dentist", a centralized digital platform for dental appointments.
 **Vibe:** Modern, clean, trustworthy healthcare UI. Fast, mobile-first, and highly responsive.
 
 ## 1. Project Overview
-Many dental clinics rely on manual booking. Dantist digitizes this by providing a unified platform where patients can browse clinics, compare services, and book appointments instantly, while clinics get a dashboard to manage their schedules and staff.
+Many dental clinics rely on manual booking. Dentist digitizes this by providing a unified platform where patients can browse clinics, compare services, and book appointments instantly, while clinics get a dashboard to manage their schedules and staff.
 
 ## 2. Tech Stack & Architecture (Frontend)
 - **Framework:** React (Next.js App Router recommended for SEO/Routing, or React + Vite)

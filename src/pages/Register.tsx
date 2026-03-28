@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Input } from "../components/ui";
-import { Stethoscope, UserPlus } from "lucide-react";
+import { BriefcaseMetal, IdentificationCard } from "@phosphor-icons/react";
 
 type Role = "patient" | "clinic";
 
@@ -89,7 +89,7 @@ export default function Register() {
           {/* header */}
           <div className="text-center space-y-2">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-              <UserPlus className="w-6 h-6 text-primary" />
+              <IdentificationCard size={24} weight="bold" className="text-primary" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Регистрация</h1>
             <p className="text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ export default function Register() {
               }`}
             >
               <span className="flex items-center justify-center gap-1.5">
-                <Stethoscope className="w-4 h-4" /> Я Клиника
+                <BriefcaseMetal size={16} weight="bold" /> Я Клиника
               </span>
             </button>
           </div>

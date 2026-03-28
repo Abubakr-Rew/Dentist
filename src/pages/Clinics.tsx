@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, MapPin, Star, Filter, X } from "lucide-react";
+import { MagnifyingGlass, Hospital, Star, Sliders, X } from "@phosphor-icons/react";
 import { Button, Input, Card, CardContent } from "../components/ui";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { mockClinics } from "../mocks/data";
 
 const SERVICE_FILTERS = [
@@ -16,6 +17,16 @@ export default function Clinics() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Simulated search loading
+  useEffect(() => {
+    if (searchQuery) {
+      setIsLoading(true);
+      const timer = setTimeout(() => setIsLoading(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery]);
 
   // Toggle filter
   const toggleService = (id: string) => {
@@ -67,7 +78,7 @@ export default function Clinics() {
           className="lg:hidden w-full sm:w-auto flex items-center gap-2"
           onClick={() => setShowMobileFilters(!showMobileFilters)}
         >
-          <Filter className="w-4 h-4" />
+          <Sliders size={18} weight="bold" />
           Фильтры
           {selectedServices.length > 0 && (
             <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center ml-1">
@@ -83,7 +94,7 @@ export default function Clinics() {
           <div className="flex items-center justify-between lg:hidden mb-4">
             <h2 className="font-semibold text-lg">Фильтры</h2>
             <button onClick={() => setShowMobileFilters(false)}>
-              <X className="w-5 h-5 text-slate-500" />
+              <X size={20} weight="bold" />
             </button>
           </div>
 
@@ -91,7 +102,7 @@ export default function Clinics() {
             <div>
               <label className="text-sm font-semibold text-slate-900 block mb-2">Название клиники</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <MagnifyingGlass size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <Input 
                   placeholder="Поиск..." 
                   className="pl-9"
@@ -140,7 +151,12 @@ export default function Clinics() {
 
         {/* Main Grid */}
         <main className="flex-1 w-full">
-          {filteredClinics.length > 0 ? (
+          {isLoading ? (
+            <div className="py-20 flex flex-col items-center">
+              <LoadingSpinner size={48} />
+              <p className="text-center text-slate-400 font-bold uppercase tracking-widest mt-4 animate-pulse">Ищем лучшие клиники...</p>
+            </div>
+          ) : filteredClinics.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredClinics.map((clinic) => (
                 <Card key={clinic.id} noPadding className="flex flex-col overflow-hidden hover:border-primary/40 transition-colors">
@@ -151,7 +167,7 @@ export default function Clinics() {
                       className="w-full h-full object-cover" 
                     />
                     <div className="absolute top-3 right-3 bg-white/95 px-2 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      <Star size={16} weight="fill" className="text-amber-400" />
                       <span className="text-sm font-semibold text-slate-800">{clinic.rating}</span>
                     </div>
                   </div>
@@ -162,7 +178,7 @@ export default function Clinics() {
                         {clinic.name}
                       </h3>
                       <div className="flex items-start text-slate-500 text-sm gap-1.5">
-                        <MapPin className="h-4 w-4 shrink-0 mt-0.5 text-slate-400" />
+                        <Hospital size={16} className="shrink-0 mt-0.5 text-slate-400" />
                         <span>{clinic.city}, {clinic.address}</span>
                       </div>
                     </div>
@@ -194,7 +210,7 @@ export default function Clinics() {
           ) : (
             <div className="text-center py-20 bg-white border border-dashed border-slate-200 rounded-xl">
               <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-slate-400" />
+                <MagnifyingGlass size={32} className="text-slate-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Ничего не найдено</h3>
               <p className="text-slate-500 max-w-sm mx-auto">
