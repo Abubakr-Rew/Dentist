@@ -4,6 +4,8 @@ import { MagnifyingGlass, Hospital, Star } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
 import { clinicsApi, ClinicSummary } from "../services/api";
 
+import { mockClinics } from "../mocks/data";
+
 export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,7 +13,11 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    clinicsApi.list().then((data) => setPopularClinics(data.slice(0, 3))).catch(() => {});
+    const mapped = mockClinics.map(c => ({
+      ...c,
+      dentist_count: c.dentists?.length || 0,
+    }));
+    setPopularClinics(mapped.slice(0, 3) as any);
   }, []);
 
   function handleSearch(e: React.FormEvent) {

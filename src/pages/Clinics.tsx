@@ -4,6 +4,8 @@ import { MagnifyingGlass, Hospital, Star, Sliders, X } from "@phosphor-icons/rea
 import { Button, Input, Card, CardContent } from "../components/ui";
 import { clinicsApi, ClinicSummary } from "../services/api";
 
+import { mockClinics } from "../mocks/data";
+
 const SERVICE_FILTERS = [
   { id: "чистка", label: "Чистка зубов" },
   { id: "удаление", label: "Удаление зуба" },
@@ -22,10 +24,14 @@ export default function Clinics() {
 
   useEffect(() => {
     setLoading(true);
-    clinicsApi.list()
-      .then(setClinics)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    setTimeout(() => {
+      const mapped = mockClinics.map(c => ({
+        ...c,
+        dentist_count: c.dentists?.length || 0,
+      }));
+      setClinics(mapped as any);
+      setLoading(false);
+    }, 500);
   }, []);
 
   const toggleService = (id: string) => {
