@@ -12,10 +12,12 @@ import {
 } from "@phosphor-icons/react";
 import { Link, useNavigate } from "react-router-dom";
 import { mockAppointments, mockClinics, Appointment } from "../mocks/data";
-import { Button, Card, CardContent } from "../components/ui";
+import { Button, Card, CardContent, Input } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 
 export default function PatientDashboard() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("appointments");
   const [appointments, setAppointments] = useState<Appointment[]>(
     mockAppointments.filter(a => a.patientName === "Алексей Иванов")
@@ -56,8 +58,12 @@ export default function PatientDashboard() {
                 Мои записи
               </button>
               <button
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all opacity-60 cursor-not-allowed"
-                disabled
+                onClick={() => setActiveTab("profile")}
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all w-full text-left ${
+                  activeTab === "profile" 
+                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                }`}
               >
                 <IdentificationCard className="w-5 h-5" />
                 Профиль
@@ -70,7 +76,13 @@ export default function PatientDashboard() {
                 Настройки
               </button>
               <div className="h-px bg-slate-100 my-2 mx-4" />
-              <button className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all">
+              <button 
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all w-full text-left"
+              >
                 <DoorOpen className="w-5 h-5" />
                 Выйти
               </button>
@@ -90,11 +102,15 @@ export default function PatientDashboard() {
           {/* Greeting */}
           <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-1">
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Здравствуйте, Алексей!</h1>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                {activeTab === "profile" ? "Управление профилем" : `Здравствуйте, ${user?.name?.split(' ')[0] || "Алексей"}!`}
+              </h1>
               <p className="text-slate-500 font-medium">
-                {upcomingApts.length > 0 
-                  ? `У вас ${upcomingApts.length} предстоящая запись` 
-                  : "У вас пока нет активных записей"}
+                {activeTab === "profile" 
+                  ? "Ваши личные данные и настройки безопасности"
+                  : (upcomingApts.length > 0 
+                      ? `У вас ${upcomingApts.length} предстоящая запись` 
+                      : "У вас пока нет активных записей")}
               </p>
             </div>
           </header>
@@ -102,8 +118,10 @@ export default function PatientDashboard() {
           {/* Sections */}
           <div className="space-y-10">
             
-            {/* Upcoming Appointments */}
-            <section className="space-y-4">
+            {activeTab === "appointments" && (
+              <>
+                {/* Upcoming Appointments */}
+                <section className="space-y-4">
               <div className="flex items-center justify-between px-1">
                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                   Предстоящие записи
@@ -256,6 +274,94 @@ export default function PatientDashboard() {
                   </div>
                 </div>
               </section>
+            )}
+              </>
+            )}
+
+            {activeTab === "profile" && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="md:col-span-2 space-y-6">
+                    <Card className="border-slate-200 shadow-sm">
+                      <CardContent className="p-6 md:p-8 space-y-6">
+                        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4">Основная информация</h3>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Имя и Фамилия</label>
+                            <Input defaultValue={user?.name || "Алексей Иванов"} className="bg-slate-50 font-medium" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Дата рождения</label>
+                            <Input type="date" defaultValue="1990-05-15" className="bg-slate-50 font-medium" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Телефон</label>
+                            <Input defaultValue="+7 (701) 111-22-33" className="bg-slate-50 font-medium" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email</label>
+                            <Input type="email" defaultValue={user?.email || "alexey@example.com"} className="bg-slate-50 font-medium" />
+                          </div>
+                        </div>
+
+                        <div className="pt-4 flex justify-end">
+                          <Button className="font-bold px-8 shadow-lg shadow-primary/20">Сохранить изменения</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-slate-200 shadow-sm">
+                      <CardContent className="p-6 md:p-8 space-y-6">
+                        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4">Безопасность</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                           <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Новый пароль</label>
+                            <Input type="password" placeholder="••••••••" className="bg-slate-50" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Подтвердите пароль</label>
+                            <Input type="password" placeholder="••••••••" className="bg-slate-50" />
+                          </div>
+                        </div>
+                        <div className="pt-4 flex justify-end">
+                          <Button variant="outline" className="font-bold">Обновить пароль</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="space-y-6">
+                    <Card className="border-slate-200 shadow-sm bg-slate-50/50">
+                      <CardContent className="p-6 text-center space-y-4 flex flex-col items-center">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 text-3xl font-black mb-2 overflow-hidden border-4 border-white shadow-md">
+                            {user?.name?.charAt(0) || "А"}
+                          </div>
+                          <button className="absolute bottom-2 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                            <IdentificationCard size={16} weight="bold" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 text-lg">{user?.name || "Алексей Иванов"}</p>
+                          <p className="text-sm text-slate-500 tracking-tight">Пациент платформы</p>
+                        </div>
+                        <div className="w-full h-px bg-slate-200 my-2" />
+                        <div className="w-full text-left text-sm space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Аккаунт создан</span>
+                            <span className="font-bold text-slate-700">12 Окт 2025</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Успешных визитов</span>
+                            <span className="font-bold text-slate-700">{historyApts.filter(a => a.status === 'completed').length}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
             )}
 
           </div>
