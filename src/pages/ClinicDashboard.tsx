@@ -13,9 +13,13 @@ import {
   MagnifyingGlass,
   Sliders,
   ListChecks,
+  SignOut,
+  Plus
 } from "@phosphor-icons/react";
+import { useNavigate } from "react-router-dom";
 import { mockAppointments, mockClinics, Appointment, AppointmentStatus } from "../mocks/data";
 import { Button, Card, CardContent, Input } from "../components/ui";
+import { useAuth } from "../context/AuthContext";
 
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; bg: string; dot: string }> = {
   upcoming: { label: "Ожидается", color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
@@ -24,7 +28,10 @@ const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; b
 };
 
 export default function ClinicDashboard() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const clinic = mockClinics[0]; // Smile Clinic
+  const [activeTab, setActiveTab] = useState("schedule");
   const [selectedDate, setSelectedDate] = useState("2026-03-27");
   const [appointments, setAppointments] = useState<Appointment[]>(
     mockAppointments.filter(a => a.clinicId === clinic.id)
@@ -77,46 +84,66 @@ export default function ClinicDashboard() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-primary/5 text-primary border border-primary/10 transition-all">
+          <button 
+            onClick={() => setActiveTab("schedule")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'schedule' ? 'bg-primary/5 text-primary border border-primary/10' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
             <CalendarCheck size={18} />
             Расписание
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all opacity-60">
+          <button 
+            onClick={() => setActiveTab("doctors")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'doctors' ? 'bg-primary/5 text-primary border border-primary/10' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
             <BriefcaseMetal size={18} />
-            Врачи
+            Врачи и Услуги
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all opacity-60">
+          <button 
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all opacity-60 cursor-not-allowed"
+          >
             <IdentificationCard size={18} />
             Пациенты
           </button>
           <div className="h-px bg-slate-100 my-4 mx-2" />
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all opacity-60">
+          <button 
+            onClick={() => setActiveTab("settings")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'settings' ? 'bg-primary/5 text-primary border border-primary/10' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
             <Sliders size={18} />
-            Настройки
+            Профиль клиники
           </button>
         </nav>
 
-        <div className="p-6">
+        <div className="p-6 space-y-2">
           <div className="bg-slate-900 rounded-2xl p-4 text-white space-y-3">
             <p className="text-xs font-medium opacity-60">Текущий тариф</p>
             <p className="text-sm font-bold uppercase tracking-wider">Premium Plan</p>
-            <Button className="w-full bg-white/10 hover:bg-white/20 border-white/10 text-xs py-2 h-auto font-bold uppercase">
-              Управление
-            </Button>
           </div>
+          <button 
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+          >
+            <SignOut size={18} weight="bold" />
+            Выйти
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 p-6 lg:p-10 space-y-8 overflow-y-auto max-h-screen">
         
-        {/* Header bar */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ежедневное расписание</h1>
-            <p className="text-sm text-slate-500 font-medium">Управление записями и статусами приемов</p>
-          </div>
-          <div className="flex items-center gap-3">
+        {activeTab === "schedule" && (
+          <>
+            {/* Header bar */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ежедневное расписание</h1>
+                <p className="text-sm text-slate-500 font-medium">Управление записями и статусами приемов</p>
+              </div>
+              <div className="flex items-center gap-3">
             <div className="relative">
               <CalendarCheck size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
@@ -371,6 +398,132 @@ export default function ClinicDashboard() {
             )}
           </div>
         </section>
+          </>
+        )}
+
+        {/* --- DOCTORS & SERVICES TAB --- */}
+        {activeTab === "doctors" && (
+          <div className="space-y-8 animate-in fade-in">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Врачи и Услуги</h1>
+                <p className="text-sm text-slate-500 font-medium">Управление персоналом и прейскурантом клиники</p>
+              </div>
+              <Button className="font-bold gap-2">
+                <Plus size={16} weight="bold" />
+                Добавить врача
+              </Button>
+            </header>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {clinic.dentists.map(dentist => (
+                <Card key={dentist.id} className="border-slate-200">
+                  <CardContent className="p-6 space-y-6">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <img src={dentist.photo} alt={dentist.name} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-lg leading-tight">{dentist.name}</h3>
+                          <p className="text-sm text-slate-500">{dentist.specialization} • Стаж {dentist.experience} лет</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" className="font-bold px-4">Изменить</Button>
+                    </div>
+                    
+                    <div className="bg-slate-50 rounded-2xl p-4">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Оказываемые услуги</p>
+                      <ul className="space-y-2">
+                        {dentist.services.map(service => (
+                          <li key={service.id} className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-slate-700">{service.name} <span className="text-slate-400 text-xs">({service.durationMinutes} мин)</span></span>
+                            <span className="font-bold text-slate-900">{service.price.toLocaleString()} ₸</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- SETTINGS TAB --- */}
+        {activeTab === "settings" && (
+          <div className="space-y-8 animate-in fade-in">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Профиль клиники</h1>
+                <p className="text-sm text-slate-500 font-medium">Основная информация о вашей стоматологии</p>
+              </div>
+              <Button className="font-bold px-8">
+                Сохранить
+              </Button>
+            </header>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-slate-200">
+                  <CardContent className="p-8 space-y-6">
+                    <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4">Публичные данные</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Название клиники</label>
+                        <Input defaultValue={clinic.name} className="bg-slate-50 font-medium" />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Номер телефона</label>
+                          <Input defaultValue={clinic.phone} className="bg-slate-50 font-medium" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Город</label>
+                          <Input defaultValue={clinic.city} className="bg-slate-50 font-medium" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Точный адрес</label>
+                        <Input defaultValue={clinic.address} className="bg-slate-50 font-medium" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Описание (о клинике)</label>
+                        <textarea 
+                          className="w-full min-h-[100px] px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                          defaultValue={clinic.description}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-6">
+                <Card className="border-slate-200 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="aspect-video w-full relative group cursor-pointer bg-slate-100">
+                      <img src={clinic.image} alt={clinic.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-bold text-sm tracking-widest uppercase">Изменить фото</span>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Рейтинг клиники</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-black text-slate-900">{clinic.rating}</span>
+                        <div className="flex text-amber-400">
+                          {[1,2,3,4,5].map(i => (
+                            <SealCheck key={i} weight="fill" className={i <= Math.round(clinic.rating) ? "" : "text-slate-200"} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
