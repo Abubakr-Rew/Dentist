@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MagnifyingGlass, Hospital, Star, Sliders, X } from "@phosphor-icons/react";
 import { Button, Input, Card, CardContent } from "../components/ui";
-import { clinicsApi, ClinicSummary } from "../services/api";
+import { ClinicSummary } from "../services/api";
 
 import { mockClinics } from "../mocks/data";
 

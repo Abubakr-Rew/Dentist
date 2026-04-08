@@ -187,7 +187,7 @@ export default function ClinicDashboard() {
           </div>
 
           {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden md:block overflow-visible pb-24">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50/50">
@@ -236,10 +236,10 @@ export default function ClinicDashboard() {
                           <span className="text-sm font-medium text-slate-600 truncate max-w-[150px] block">{service?.name}</span>
                         </td>
                         <td className="px-6 py-5 align-top">
-                          <div className="relative inline-block hover:z-20">
+                          <div className={`relative inline-block ${openDropdownId === apt.id ? 'z-50' : 'hover:z-20'}`}>
                             <button 
                               onClick={() => toggleDropdown(apt.id)}
-                              className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${config.bg} ${config.color} border-current/10 cursor-pointer hover:bg-white active:scale-95`}
+                              className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${config.bg} ${config.color} border-current/10 cursor-pointer hover:bg-white active:scale-95 relative z-10`}
                             >
                               <div className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
                               {config.label}
@@ -249,10 +249,10 @@ export default function ClinicDashboard() {
                             {openDropdownId === apt.id && (
                               <>
                                 <div 
-                                  className="fixed inset-0 z-0" 
+                                  className="fixed inset-0 z-40 bg-transparent" 
                                   onClick={() => setOpenDropdownId(null)}
                                 />
-                                <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-slate-200 rounded-xl shadow-xl z-10 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 animate-in fade-in zoom-in-95 duration-200">
                                   <div className="p-1.5 space-y-1">
                                     <button onClick={() => toggleStatus(apt.id, "upcoming")} className="w-full text-left px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 rounded-lg flex items-center gap-2">
                                       <Hourglass size={14} weight="bold" /> Ожидается

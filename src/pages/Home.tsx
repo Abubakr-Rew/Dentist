@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MagnifyingGlass, Hospital, Star } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
-import { clinicsApi, ClinicSummary } from "../services/api";
+import { ClinicSummary } from "../services/api";
 
 import { mockClinics } from "../mocks/data";
 
