@@ -10,7 +10,29 @@ export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
+  
+  const [isServiceOpen, setIsServiceOpen] = useState(false);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+  
   const navigate = useNavigate();
+
+  const SERVICES_MAP = [
+    { id: "Консультация", label: "Первичная консультация" },
+    { id: "Кариес", label: "Лечение кариеса" },
+    { id: "Брекеты", label: "Брекеты и элайнеры" },
+    { id: "Отбеливание", label: "Отбеливание зубов" },
+    { id: "Имплантация", label: "Имплантация" },
+    { id: "Удаление", label: "Удаление зуба" },
+    { id: "Чистка", label: "Профессиональная чистка зубов" },
+    { id: "Виниры", label: "Установка виниров" },
+  ];
+
+  const CITIES = ["Алматы", "Астана", "Шымкент"];
+
+  const filteredServices = SERVICES_MAP.filter(s => 
+    s.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    s.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const mapped = mockClinics.map(c => ({
@@ -31,11 +53,13 @@ export default function Home() {
   return (
     <div className="-mt-8 space-y-16 pb-12">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-20 lg:py-28 overflow-hidden">
-        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-72 h-72 bg-cyan-200/20 rounded-full blur-3xl" />
+      <section className="relative bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-72 h-72 bg-cyan-200/20 rounded-full blur-3xl" />
+        </div>
 
-        <div className="relative max-w-3xl mx-auto text-center space-y-8">
+        <div className="relative z-10 max-w-3xl mx-auto text-center space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 tracking-tight">
               Найдите лучшего стоматолога и <span className="text-primary">запишитесь онлайн</span>
@@ -46,73 +70,93 @@ export default function Home() {
           </div>
 
           {/* Structured Booking Widget */}
-          <form onSubmit={handleSearch} className="bg-white p-2 sm:p-3 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white/50 flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto relative z-10 backdrop-blur-xl">
+          <form onSubmit={handleSearch} className="bg-white p-2 sm:p-3 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white/50 flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto relative z-20 backdrop-blur-xl">
             
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer relative group">
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-text relative group">
                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                  <Tooth size={24} weight="duotone" />
                </div>
-               <div className="text-left w-full flex flex-col">
+               <div className="text-left w-full flex flex-col relative">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Что вас беспокоит?</label>
-                 <select 
+                 <input 
+                   type="text"
                    value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full bg-transparent text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none text-sm sm:text-base relative z-10"
-                 >
-                    <option value="">Любая услуга</option>
-                    <option value="Консультация">Первичная консультация</option>
-                    <option value="Кариес">Лечение кариеса</option>
-                    <option value="Брекеты">Брекеты и элайнеры</option>
-                    <option value="Отбеливание">Отбеливание зубов</option>
-                    <option value="Имплантация">Имплантация</option>
-                 </select>
+                   onChange={(e) => {
+                     setSearchQuery(e.target.value);
+                     setIsServiceOpen(true);
+                   }}
+                   onFocus={() => setIsServiceOpen(true)}
+                   onBlur={() => setTimeout(() => setIsServiceOpen(false), 200)}
+                   placeholder="Услуга или симптом"
+                   className="w-full bg-transparent text-slate-900 font-bold focus:outline-none placeholder:font-normal placeholder:text-slate-400 text-sm sm:text-base border-none pl-1"
+                 />
                </div>
-               <CaretDown size={16} weight="bold" className="text-slate-300 absolute right-4 pointer-events-none group-hover:text-primary transition-colors" />
+               
+               {/* Dropdown Menu for Services */}
+               {isServiceOpen && (
+                 <div className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-64 overflow-y-auto z-50 p-2 animate-in fade-in slide-in-from-top-2">
+                   {filteredServices.length > 0 ? (
+                     filteredServices.map(s => (
+                       <div 
+                         key={s.id}
+                         onMouseDown={() => { setSearchQuery(s.id); setIsServiceOpen(false); }}
+                         className="px-4 py-3 hover:bg-slate-50 cursor-pointer rounded-xl font-bold text-slate-700 hover:text-primary transition-colors flex flex-col"
+                       >
+                         <span>{s.label}</span>
+                       </div>
+                     ))
+                   ) : (
+                     <div className="px-4 py-3 text-slate-400 text-sm">Услуга не найдена. Попробуйте другой запрос.</div>
+                   )}
+                 </div>
+               )}
             </div>
 
             <div className="hidden sm:block w-px bg-slate-100 my-4" />
 
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer relative group">
+            <div 
+              className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer relative group"
+              onClick={() => setIsCityOpen(!isCityOpen)}
+              onBlur={() => setTimeout(() => setIsCityOpen(false), 200)}
+              tabIndex={0}
+            >
                <div className="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0">
                  <MapPin size={24} weight="duotone" />
                </div>
-               <div className="text-left w-full flex flex-col">
+               <div className="text-left w-full flex flex-col pointer-events-none">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Ваш город</label>
-                 <select 
-                   value={cityQuery}
-                   onChange={(e) => setCityQuery(e.target.value)}
-                   className="w-full bg-transparent text-slate-900 font-bold focus:outline-none cursor-pointer appearance-none text-sm sm:text-base relative z-10"
-                 >
-                    <option value="">Любой город</option>
-                    <option value="Алматы">Алматы</option>
-                    <option value="Астана">Астана</option>
-                    <option value="Шымкент">Шымкент</option>
-                 </select>
+                 <div className={`w-full font-bold pl-1 text-sm sm:text-base ${cityQuery ? 'text-slate-900' : 'text-slate-400 font-normal'}`}>
+                   {cityQuery || "Любой город"}
+                 </div>
                </div>
-               <CaretDown size={16} weight="bold" className="text-slate-300 absolute right-4 pointer-events-none group-hover:text-primary transition-colors" />
+               <CaretDown size={16} weight="bold" className={`text-slate-300 absolute right-4 transition-transform duration-200 ${isCityOpen ? 'rotate-180 text-primary' : 'group-hover:text-primary'}`} />
+
+               {/* Dropdown Menu for Cities */}
+               {isCityOpen && (
+                 <div className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2">
+                   <div 
+                     onMouseDown={() => { setCityQuery(""); setIsCityOpen(false); }}
+                     className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === "" ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
+                   >
+                     Любой город
+                   </div>
+                   {CITIES.map(c => (
+                     <div 
+                       key={c}
+                       onMouseDown={() => { setCityQuery(c); setIsCityOpen(false); }}
+                       className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === c ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
+                     >
+                       {c}
+                     </div>
+                   ))}
+                 </div>
+               )}
             </div>
 
             <Button type="submit" size="lg" className="w-full sm:w-auto px-10 rounded-[1.5rem] shrink-0 font-bold text-lg shadow-lg shadow-primary/20">
               Поиск
             </Button>
           </form>
-
-          {/* Quick Tags */}
-          <div className="pt-6 flex flex-wrap justify-center gap-2">
-            {["Консультация", "Чистка зубов", "Лечение кариеса", "Удаление", "Импланты"].map(tag => (
-              <button 
-                key={tag}
-                type="button"
-                onClick={() => {
-                  setSearchQuery(tag);
-                  navigate(`/clinics?search=${tag}`);
-                }}
-                className="px-4 py-2 bg-white/60 hover:bg-white border text-sm border-slate-200/60 rounded-full font-bold text-slate-600 hover:text-primary hover:border-primary/30 transition-all shadow-sm backdrop-blur-sm"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -233,9 +277,11 @@ export default function Home() {
               <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-primary" /> Снижение количества неявок</li>
             </ul>
 
-            <Button size="lg" className="w-full sm:w-auto font-bold px-8 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white">
-              Подключить клинику
-            </Button>
+            <Link to="/register" className="block w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto font-bold px-8 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white">
+                Подключить клинику
+              </Button>
+            </Link>
           </div>
           
           <div className="hidden lg:block relative h-full min-h-[300px]">

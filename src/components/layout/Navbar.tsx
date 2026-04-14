@@ -38,13 +38,13 @@ export default function Navbar() {
               <Link to="/clinics" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
                 Врачи и Клиники
               </Link>
-              <a href="#how-it-works" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              <a href="/#how-it-works" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
                 Как это работает
               </a>
-              <a href="#partners" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              <a href="/#partners" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
                 Партнерам
               </a>
-              <a href="#contacts" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              <a href="/#contacts" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
                 Контакты
               </a>
             </div>
@@ -106,9 +106,9 @@ export default function Navbar() {
           <div className="pt-2 pb-3 space-y-1">
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Главная</Link>
             <Link to="/clinics" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Врачи и Клиники</Link>
-            <a href="#how-it-works" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Как это работает</a>
-            <a href="#partners" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Партнерам</a>
-            <a href="#contacts" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Контакты</a>
+            <a href="/#how-it-works" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Как это работает</a>
+            <a href="/#partners" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Партнерам</a>
+            <a href="/#contacts" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Контакты</a>
           </div>
 
           <div className="pt-4 pb-6 border-t border-gray-100 px-4 space-y-3">

@@ -5,6 +5,8 @@ import { Button, Input, Card, CardContent } from "../components/ui";
 
 import { mockClinics, Clinic } from "../mocks/data";
 
+type ClinicSummary = Clinic & { dentist_count: number };
+
 const SERVICE_FILTERS = [
   { id: "Консультация", label: "Первичная консультация" },
   { id: "Кариес", label: "Лечение кариеса" },
@@ -18,7 +20,7 @@ const CITIES = ["Алматы", "Астана", "Шымкент"];
 
 export default function Clinics() {
   const [searchParams] = useSearchParams();
-  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [clinics, setClinics] = useState<ClinicSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
