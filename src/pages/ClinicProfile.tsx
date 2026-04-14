@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { MapPin, Star, Clock, Phone, CaretRight, GraduationCap, ArrowLeft, CheckCircle } from "@phosphor-icons/react";
+import { MapPin, Star, Clock, Phone, GraduationCap, ArrowLeft, CheckCircle, CaretRight } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
 import { mockClinics } from "../mocks/data";
+import Breadcrumbs from "../components/layout/Breadcrumbs";
+import { getClinicBreadcrumbs } from "../lib/routes/breadcrumbs";
 
 export default function ClinicProfile() {
   const { id } = useParams<{ id: string }>();
@@ -35,14 +37,7 @@ export default function ClinicProfile() {
 
   return (
     <div className="space-y-8 -mt-4 pb-12 animate-in fade-in duration-500 slide-in-from-bottom-4">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center text-sm text-slate-500 gap-2">
-        <Link to="/" className="hover:text-primary transition-colors">Главная</Link>
-        <CaretRight size={14} weight="bold" />
-        <Link to="/clinics" className="hover:text-primary transition-colors">Клиники</Link>
-        <CaretRight size={14} weight="bold" />
-        <span className="text-slate-900 font-medium">{clinic.name}</span>
-      </nav>
+      <Breadcrumbs items={getClinicBreadcrumbs(clinic.name)} />
 
       {/* Header Profile Section */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">

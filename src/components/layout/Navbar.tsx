@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { 
   List, 
   X, 
@@ -16,11 +16,33 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+
+  const navLinkClassName = ({ isActive }: { isActive: boolean }) =>
+    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all ${
+      isActive
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:border-primary hover:text-primary"
+    }`;
+
+  const homeLinkClassName = () =>
+    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all ${
+      location.pathname === "/" && !location.hash
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:border-primary hover:text-primary"
+    }`;
+
+  const hashLinkClassName = (hash: string) =>
+    `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-bold transition-all ${
+      location.pathname === "/" && location.hash === hash
+        ? "border-primary text-primary"
+        : "border-transparent text-gray-500 hover:border-primary hover:text-primary"
+    }`;
 
   return (
     <nav className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-50">
@@ -32,21 +54,21 @@ export default function Navbar() {
               <span className="font-bold text-xl text-gray-900 tracking-tight">Dentist</span>
             </Link>
             <div className="hidden lg:ml-8 lg:flex lg:space-x-6 xl:space-x-8">
-              <Link to="/" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              <NavLink to="/" className={homeLinkClassName} end>
                 Главная
-              </Link>
-              <Link to="/clinics" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              </NavLink>
+              <NavLink to="/clinics" className={navLinkClassName}>
                 Врачи и Клиники
-              </Link>
-              <a href="/#how-it-works" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              </NavLink>
+              <Link to="/#how-it-works" className={hashLinkClassName("#how-it-works")}>
                 Как это работает
-              </a>
-              <a href="/#partners" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              </Link>
+              <Link to="/#partners" className={hashLinkClassName("#partners")}>
                 Партнерам
-              </a>
-              <a href="/#contacts" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-gray-500 hover:border-primary hover:text-primary transition-all">
+              </Link>
+              <Link to="/#contacts" className={hashLinkClassName("#contacts")}>
                 Контакты
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -82,8 +104,9 @@ export default function Navbar() {
                 </Link>
                 <button 
                   onClick={handleLogout}
-                  className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200"
                   title="Выйти"
+                  aria-label="Выйти из аккаунта"
                 >
                   <DoorOpen size={20} weight="bold" />
                 </button>
@@ -92,7 +115,12 @@ export default function Navbar() {
           </div>
 
           <div className="-mr-2 flex items-center lg:hidden">
-            <button onClick={() => setIsOpen(!isOpen)} className="inline-flex items-center justify-center p-2 rounded-xl text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none transition-colors">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              aria-expanded={isOpen}
+              aria-controls="mobile-menu"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 transition-colors"
+            >
               <span className="sr-only">Открыть меню</span>
               {isOpen ? <X size={24} weight="bold" /> : <List size={24} weight="bold" />}
             </button>
@@ -102,13 +130,13 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
+        <div id="mobile-menu" className="lg:hidden bg-white border-t border-gray-100 animate-in slide-in-from-top-2 duration-200 motion-reduce:animate-none">
           <div className="pt-2 pb-3 space-y-1">
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Главная</Link>
             <Link to="/clinics" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Врачи и Клиники</Link>
-            <a href="/#how-it-works" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Как это работает</a>
-            <a href="/#partners" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Партнерам</a>
-            <a href="/#contacts" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Контакты</a>
+            <Link to="/#how-it-works" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Как это работает</Link>
+            <Link to="/#partners" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Партнерам</Link>
+            <Link to="/#contacts" onClick={() => setIsOpen(false)} className="block px-4 py-3 text-base font-bold text-gray-600 hover:bg-gray-50 transition-colors">Контакты</Link>
           </div>
 
           <div className="pt-4 pb-6 border-t border-gray-100 px-4 space-y-3">

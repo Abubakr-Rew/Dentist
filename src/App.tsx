@@ -33,8 +33,22 @@ function App() {
             <Route path="/booking/success" element={<BookingSuccess />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/patient/dashboard" element={<PatientDashboard />} />
-            <Route path="/clinic/dashboard" element={<ClinicDashboard />} />
+            <Route
+              path="/patient/dashboard"
+              element={
+                <ProtectedRoute role="patient">
+                  <PatientDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clinic/dashboard"
+              element={
+                <ProtectedRoute role="clinic">
+                  <ClinicDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

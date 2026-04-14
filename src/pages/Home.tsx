@@ -1,37 +1,32 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Hospital, Star, CaretDown, MapPin, Tooth } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
-import { ClinicSummary } from "../services/api";
+import { Clinic, mockClinics } from "../mocks/data";
+import { buildCatalogSearchParams, CITIES, SERVICE_FILTERS } from "../lib/search/catalog";
 
-import { mockClinics } from "../mocks/data";
+type ClinicSummary = Clinic & { dentist_count: number };
 
 export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
-  
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [isServiceOpen, setIsServiceOpen] = useState(false);
   const [isCityOpen, setIsCityOpen] = useState(false);
-  
+
   const navigate = useNavigate();
+  const serviceListboxId = "service-options-listbox";
+  const cityListboxId = "city-options-listbox";
 
-  const SERVICES_MAP = [
-    { id: "Консультация", label: "Первичная консультация" },
-    { id: "Кариес", label: "Лечение кариеса" },
-    { id: "Брекеты", label: "Брекеты и элайнеры" },
-    { id: "Отбеливание", label: "Отбеливание зубов" },
-    { id: "Имплантация", label: "Имплантация" },
-    { id: "Удаление", label: "Удаление зуба" },
-    { id: "Чистка", label: "Профессиональная чистка зубов" },
-    { id: "Виниры", label: "Установка виниров" },
-  ];
-
-  const CITIES = ["Алматы", "Астана", "Шымкент"];
-
-  const filteredServices = SERVICES_MAP.filter(s => 
-    s.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredServices = useMemo(
+    () =>
+      SERVICE_FILTERS.filter(
+        (service) =>
+          service.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.id.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [searchQuery],
   );
 
   useEffect(() => {
@@ -39,14 +34,16 @@ export default function Home() {
       ...c,
       dentist_count: c.dentists?.length || 0,
     }));
-    setPopularClinics(mapped.slice(0, 3) as any);
+    setPopularClinics(mapped.slice(0, 3));
   }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (searchQuery) params.set("search", searchQuery);
-    if (cityQuery) params.set("city", cityQuery);
+    const params = buildCatalogSearchParams({
+      q: selectedServiceId ? "" : searchQuery,
+      city: cityQuery,
+      services: selectedServiceId ? [selectedServiceId] : [],
+    });
     navigate(`/clinics?${params.toString()}`);
   }
 
@@ -78,14 +75,24 @@ export default function Home() {
                </div>
                <div className="text-left w-full flex flex-col relative">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Что вас беспокоит?</label>
-                 <input 
+                 <input
+                   aria-autocomplete="list"
+                   aria-expanded={isServiceOpen}
+                   aria-controls={serviceListboxId}
+                   role="combobox"
                    type="text"
                    value={searchQuery}
                    onChange={(e) => {
                      setSearchQuery(e.target.value);
+                     setSelectedServiceId(null);
                      setIsServiceOpen(true);
                    }}
                    onFocus={() => setIsServiceOpen(true)}
+                   onKeyDown={(e) => {
+                     if (e.key === "Escape") {
+                       setIsServiceOpen(false);
+                     }
+                   }}
                    onBlur={() => setTimeout(() => setIsServiceOpen(false), 200)}
                    placeholder="Услуга или симптом"
                    className="w-full bg-transparent text-slate-900 font-bold focus:outline-none placeholder:font-normal placeholder:text-slate-400 text-sm sm:text-base border-none pl-1"
@@ -94,16 +101,27 @@ export default function Home() {
                
                {/* Dropdown Menu for Services */}
                {isServiceOpen && (
-                 <div className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-64 overflow-y-auto z-50 p-2 animate-in fade-in slide-in-from-top-2">
+                 <div
+                   id={serviceListboxId}
+                   role="listbox"
+                   className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-64 overflow-y-auto z-50 p-2 animate-in fade-in slide-in-from-top-2 motion-reduce:animate-none"
+                 >
                    {filteredServices.length > 0 ? (
-                     filteredServices.map(s => (
-                       <div 
-                         key={s.id}
-                         onMouseDown={() => { setSearchQuery(s.id); setIsServiceOpen(false); }}
+                     filteredServices.map((service) => (
+                       <button
+                         type="button"
+                         role="option"
+                         aria-selected={selectedServiceId === service.id}
+                         key={service.id}
+                         onMouseDown={() => {
+                           setSearchQuery(service.id);
+                           setSelectedServiceId(service.id);
+                           setIsServiceOpen(false);
+                         }}
                          className="px-4 py-3 hover:bg-slate-50 cursor-pointer rounded-xl font-bold text-slate-700 hover:text-primary transition-colors flex flex-col"
                        >
-                         <span>{s.label}</span>
-                       </div>
+                         <span>{service.label}</span>
+                       </button>
                      ))
                    ) : (
                      <div className="px-4 py-3 text-slate-400 text-sm">Услуга не найдена. Попробуйте другой запрос.</div>
@@ -114,11 +132,21 @@ export default function Home() {
 
             <div className="hidden sm:block w-px bg-slate-100 my-4" />
 
-            <div 
+            <div
               className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer relative group"
               onClick={() => setIsCityOpen(!isCityOpen)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsCityOpen((value) => !value);
+                }
+                if (e.key === "Escape") setIsCityOpen(false);
+              }}
               onBlur={() => setTimeout(() => setIsCityOpen(false), 200)}
               tabIndex={0}
+              role="combobox"
+              aria-expanded={isCityOpen}
+              aria-controls={cityListboxId}
             >
                <div className="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0">
                  <MapPin size={24} weight="duotone" />
@@ -133,21 +161,37 @@ export default function Home() {
 
                {/* Dropdown Menu for Cities */}
                {isCityOpen && (
-                 <div className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2">
-                   <div 
-                     onMouseDown={() => { setCityQuery(""); setIsCityOpen(false); }}
+                 <div
+                   id={cityListboxId}
+                   role="listbox"
+                   className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2 motion-reduce:animate-none"
+                 >
+                   <button
+                     type="button"
+                     role="option"
+                     aria-selected={cityQuery === ""}
+                     onMouseDown={() => {
+                       setCityQuery("");
+                       setIsCityOpen(false);
+                     }}
                      className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === "" ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
                    >
                      Любой город
-                   </div>
-                   {CITIES.map(c => (
-                     <div 
-                       key={c}
-                       onMouseDown={() => { setCityQuery(c); setIsCityOpen(false); }}
-                       className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === c ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
+                   </button>
+                   {CITIES.map((city) => (
+                     <button
+                       type="button"
+                       role="option"
+                       aria-selected={cityQuery === city}
+                       key={city}
+                       onMouseDown={() => {
+                         setCityQuery(city);
+                         setIsCityOpen(false);
+                       }}
+                       className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === city ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
                      >
-                       {c}
-                     </div>
+                       {city}
+                     </button>
                    ))}
                  </div>
                )}

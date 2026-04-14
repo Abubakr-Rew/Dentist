@@ -1,45 +1,22 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MagnifyingGlass, Star, Sliders, X, MapPin } from "@phosphor-icons/react";
 import { Button, Input, Card, CardContent } from "../components/ui";
-
 import { mockClinics, Clinic } from "../mocks/data";
+import { useClinicsFilter } from "../hooks/useClinicsFilter";
+import { buildCatalogSearchParams, CITIES, parseCatalogQuery, SERVICE_FILTERS } from "../lib/search/catalog";
 
 type ClinicSummary = Clinic & { dentist_count: number };
 
-const SERVICE_FILTERS = [
-  { id: "Консультация", label: "Первичная консультация" },
-  { id: "Кариес", label: "Лечение кариеса" },
-  { id: "Брекеты", label: "Брекеты и элайнеры" },
-  { id: "Отбеливание", label: "Отбеливание зубов" },
-  { id: "Имплантация", label: "Имплантация" },
-  { id: "Удаление", label: "Удаление зуба" },
-];
-
-const CITIES = ["Алматы", "Астана", "Шымкент"];
-
 export default function Clinics() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = useMemo(() => parseCatalogQuery(searchParams), [searchParams]);
   const [clinics, setClinics] = useState<ClinicSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-
-  // Initialize filters from URL params passed from Home.tsx
-  const initialSearch = searchParams.get("search") || "";
-  const initialCity = searchParams.get("city") || "";
-
-  // If the search param exactly matches a predefined service, we treat it as a service filter.
-  // Otherwise, we treat it as a text search for the clinic name.
-  const isServiceMatch = SERVICE_FILTERS.some(s => s.id === initialSearch) || 
-                         initialSearch === "Чистка зубов"; // for Quick tags
-
-  const resolvedInitialService = initialSearch === "Чистка зубов" ? "Отбеливание" : initialSearch; 
-
-  const [nameQuery, setNameQuery] = useState(isServiceMatch ? "" : initialSearch);
-  const [cityQuery, setCityQuery] = useState(initialCity);
-  const [selectedServices, setSelectedServices] = useState<string[]>(
-    isServiceMatch ? [resolvedInitialService] : []
-  );
+  const [nameQuery, setNameQuery] = useState(initialQuery.q);
+  const [cityQuery, setCityQuery] = useState(initialQuery.city);
+  const [selectedServices, setSelectedServices] = useState<string[]>(initialQuery.services);
 
   useEffect(() => {
     setLoading(true);
@@ -48,10 +25,16 @@ export default function Clinics() {
         ...c,
         dentist_count: c.dentists?.length || 0,
       }));
-      setClinics(mapped as any);
+      setClinics(mapped);
       setLoading(false);
     }, 500);
   }, []);
+
+  useEffect(() => {
+    setNameQuery(initialQuery.q);
+    setCityQuery(initialQuery.city);
+    setSelectedServices(initialQuery.services);
+  }, [initialQuery.city, initialQuery.q, initialQuery.services]);
 
   const toggleService = (id: string) => {
     setSelectedServices((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
@@ -63,40 +46,19 @@ export default function Clinics() {
     setSelectedServices([]);
   };
 
-  const filteredClinics = useMemo(() => {
-    return clinics.filter((clinic) => {
-      // 1. Name query filter
-      if (nameQuery && !clinic.name.toLowerCase().includes(nameQuery.toLowerCase())) {
-        return false;
-      }
-      
-      // 2. City query filter
-      if (cityQuery && clinic.city !== cityQuery) {
-        return false;
-      }
-      
-      // 3. Service query filter (must offer all selected services)
-      if (selectedServices.length > 0) {
-        const offersAllSelected = selectedServices.every(serviceId => {
-           // We map serviceId back to a simple search term
-           const term = serviceId === "Консультация" ? "консультация" 
-                      : serviceId === "Кариес" ? "кариес"
-                      : serviceId === "Брекеты" ? "брекет"
-                      : serviceId === "Отбеливание" ? "отбеливани"
-                      : serviceId === "Имплантация" ? "имплант"
-                      : serviceId === "Удаление" ? "удален"
-                      : serviceId.toLowerCase();
+  useEffect(() => {
+    const next = buildCatalogSearchParams({ q: nameQuery, city: cityQuery, services: selectedServices });
+    if (next.toString() !== searchParams.toString()) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [cityQuery, nameQuery, searchParams, selectedServices, setSearchParams]);
 
-           return clinic.dentists?.some(d => 
-             d.services.some(s => s.name.toLowerCase().includes(term))
-           );
-        });
-        if (!offersAllSelected) return false;
-      }
-
-      return true;
-    });
-  }, [clinics, nameQuery, cityQuery, selectedServices]);
+  const filteredClinics = useClinicsFilter({
+    clinics,
+    q: nameQuery,
+    city: cityQuery,
+    services: selectedServices,
+  });
 
   return (
     <div className="space-y-6">
@@ -168,12 +130,22 @@ export default function Clinics() {
               <div className="space-y-3">
                 {SERVICE_FILTERS.map((s) => (
                   <label key={s.id} className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                      selectedServices.includes(s.id) ? "bg-primary border-primary shadow-sm shadow-primary/20" : "border-slate-300 group-hover:border-primary"
-                    }`}>
+                    <div
+                      aria-hidden
+                      className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                        selectedServices.includes(s.id)
+                          ? "bg-primary border-primary shadow-sm shadow-primary/20"
+                          : "border-slate-300 group-hover:border-primary"
+                      }`}
+                    >
                       {selectedServices.includes(s.id) && <span className="text-white text-xs text-center leading-none">✓</span>}
                     </div>
-                    <input type="checkbox" className="hidden" checked={selectedServices.includes(s.id)} onChange={() => toggleService(s.id)} />
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={selectedServices.includes(s.id)}
+                      onChange={() => toggleService(s.id)}
+                    />
                     <span className={`text-sm ${selectedServices.includes(s.id) ? "text-slate-900 font-medium" : "text-slate-600"}`}>{s.label}</span>
                   </label>
                 ))}

@@ -31,8 +31,6 @@ export default function Booking() {
   }
 
   const handleConfirm = (data: { patientName: string; patientPhone: string; serviceId: string; addonIds: string[] }) => {
-    console.log("Booking confirmed:", { ...data, slot: selectedSlot, clinicId, dentistId });
-    // In a real app, we would send this to the server here.
     navigate("/booking/success", { 
       state: { 
         clinicId, 
