@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MagnifyingGlass, Star, Sliders, X, MapPin } from "@phosphor-icons/react";
 import { Button, Input, Card, CardContent } from "../components/ui";
-import { mockClinics, Clinic } from "../mocks/data";
+import { mockClinics } from "../mocks/data";
 import { useClinicsFilter } from "../hooks/useClinicsFilter";
+import type { ClinicSummary } from "../hooks/useClinicsFilter";
 import { buildCatalogSearchParams, CITIES, parseCatalogQuery, SERVICE_FILTERS } from "../lib/search/catalog";
-
-type ClinicSummary = Clinic & { dentist_count: number };
 
 export default function Clinics() {
   const [searchParams, setSearchParams] = useSearchParams();

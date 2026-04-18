@@ -16,4 +16,101 @@
   --color-ring: #0891b2;
   --color-background: #ffffff;
   --color-foreground: #0f172a;
+
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-fade-in-up: fade-in-up 0.4s ease-out both;
+  --animate-slide-in-from-top: slide-in-from-top 0.25s ease-out both;
+  --animate-slide-in-from-bottom: slide-in-from-bottom 0.35s ease-out both;
+  --animate-slide-in-from-right: slide-in-from-right 0.35s ease-out both;
+  --animate-zoom-in: zoom-in 0.3s ease-out both;
+}
+
+/* ─── Keyframe Animations ─── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-from-top {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-from-bottom {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-from-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Utility Classes ─── */
+/* These replicate the tailwindcss-animate classes used across the app */
+
+@utility animate-in {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+@utility fade-in {
+  animation-name: fade-in;
+}
+
+@utility slide-in-from-top-2 {
+  animation-name: slide-in-from-top;
+}
+
+@utility slide-in-from-bottom-2 {
+  animation-name: slide-in-from-bottom;
+  --tw-slide-distance: 8px;
+}
+
+@utility slide-in-from-bottom-4 {
+  animation-name: slide-in-from-bottom;
+}
+
+@utility slide-in-from-right-4 {
+  animation-name: slide-in-from-right;
+}
+
+@utility zoom-in-95 {
+  animation-name: zoom-in;
+}
+
+/* Duration overrides */
+@utility duration-200 {
+  animation-duration: 0.2s;
+}
+
+@utility duration-300 {
+  animation-duration: 0.3s;
+}
+
+@utility duration-500 {
+  animation-duration: 0.5s;
+}
+
+@utility duration-700 {
+  animation-duration: 0.7s;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none !important;
+  }
 }

@@ -1,51 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Hospital, Star, CaretDown, MapPin, Tooth } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Hospital, Star } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
-import { Clinic, mockClinics } from "../mocks/data";
-import { buildCatalogSearchParams, CITIES, SERVICE_FILTERS } from "../lib/search/catalog";
-
-type ClinicSummary = Clinic & { dentist_count: number };
+import { mockClinics } from "../mocks/data";
+import type { ClinicSummary } from "../hooks/useClinicsFilter";
+import SearchWidget from "../components/home/SearchWidget";
 
 export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cityQuery, setCityQuery] = useState("");
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [isServiceOpen, setIsServiceOpen] = useState(false);
-  const [isCityOpen, setIsCityOpen] = useState(false);
-
-  const navigate = useNavigate();
-  const serviceListboxId = "service-options-listbox";
-  const cityListboxId = "city-options-listbox";
-
-  const filteredServices = useMemo(
-    () =>
-      SERVICE_FILTERS.filter(
-        (service) =>
-          service.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          service.id.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-    [searchQuery],
-  );
 
   useEffect(() => {
-    const mapped = mockClinics.map(c => ({
+    const mapped = mockClinics.map((c) => ({
       ...c,
       dentist_count: c.dentists?.length || 0,
     }));
     setPopularClinics(mapped.slice(0, 3));
   }, []);
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const params = buildCatalogSearchParams({
-      q: selectedServiceId ? "" : searchQuery,
-      city: cityQuery,
-      services: selectedServiceId ? [selectedServiceId] : [],
-    });
-    navigate(`/clinics?${params.toString()}`);
-  }
 
   return (
     <div className="-mt-8 space-y-16 pb-12">
@@ -67,140 +37,7 @@ export default function Home() {
           </div>
 
           {/* Structured Booking Widget */}
-          <form onSubmit={handleSearch} className="bg-white p-2 sm:p-3 rounded-[2rem] shadow-xl shadow-slate-200/50 border border-white/50 flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto relative z-20 backdrop-blur-xl">
-            
-            <div className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-text relative group">
-               <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                 <Tooth size={24} weight="duotone" />
-               </div>
-               <div className="text-left w-full flex flex-col relative">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Что вас беспокоит?</label>
-                 <input
-                   aria-autocomplete="list"
-                   aria-expanded={isServiceOpen}
-                   aria-controls={serviceListboxId}
-                   role="combobox"
-                   type="text"
-                   value={searchQuery}
-                   onChange={(e) => {
-                     setSearchQuery(e.target.value);
-                     setSelectedServiceId(null);
-                     setIsServiceOpen(true);
-                   }}
-                   onFocus={() => setIsServiceOpen(true)}
-                   onKeyDown={(e) => {
-                     if (e.key === "Escape") {
-                       setIsServiceOpen(false);
-                     }
-                   }}
-                   onBlur={() => setTimeout(() => setIsServiceOpen(false), 200)}
-                   placeholder="Услуга или симптом"
-                   className="w-full bg-transparent text-slate-900 font-bold focus:outline-none placeholder:font-normal placeholder:text-slate-400 text-sm sm:text-base border-none pl-1"
-                 />
-               </div>
-               
-               {/* Dropdown Menu for Services */}
-               {isServiceOpen && (
-                 <div
-                   id={serviceListboxId}
-                   role="listbox"
-                   className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 max-h-64 overflow-y-auto z-50 p-2 animate-in fade-in slide-in-from-top-2 motion-reduce:animate-none"
-                 >
-                   {filteredServices.length > 0 ? (
-                     filteredServices.map((service) => (
-                       <button
-                         type="button"
-                         role="option"
-                         aria-selected={selectedServiceId === service.id}
-                         key={service.id}
-                         onMouseDown={() => {
-                           setSearchQuery(service.id);
-                           setSelectedServiceId(service.id);
-                           setIsServiceOpen(false);
-                         }}
-                         className="px-4 py-3 hover:bg-slate-50 cursor-pointer rounded-xl font-bold text-slate-700 hover:text-primary transition-colors flex flex-col"
-                       >
-                         <span>{service.label}</span>
-                       </button>
-                     ))
-                   ) : (
-                     <div className="px-4 py-3 text-slate-400 text-sm">Услуга не найдена. Попробуйте другой запрос.</div>
-                   )}
-                 </div>
-               )}
-            </div>
-
-            <div className="hidden sm:block w-px bg-slate-100 my-4" />
-
-            <div
-              className="flex-1 flex items-center gap-3 px-4 py-3 hover:bg-slate-50 rounded-2xl transition-colors cursor-pointer relative group"
-              onClick={() => setIsCityOpen(!isCityOpen)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIsCityOpen((value) => !value);
-                }
-                if (e.key === "Escape") setIsCityOpen(false);
-              }}
-              onBlur={() => setTimeout(() => setIsCityOpen(false), 200)}
-              tabIndex={0}
-              role="combobox"
-              aria-expanded={isCityOpen}
-              aria-controls={cityListboxId}
-            >
-               <div className="w-12 h-12 rounded-full bg-cyan-50 text-cyan-500 flex items-center justify-center shrink-0">
-                 <MapPin size={24} weight="duotone" />
-               </div>
-               <div className="text-left w-full flex flex-col pointer-events-none">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Ваш город</label>
-                 <div className={`w-full font-bold pl-1 text-sm sm:text-base ${cityQuery ? 'text-slate-900' : 'text-slate-400 font-normal'}`}>
-                   {cityQuery || "Любой город"}
-                 </div>
-               </div>
-               <CaretDown size={16} weight="bold" className={`text-slate-300 absolute right-4 transition-transform duration-200 ${isCityOpen ? 'rotate-180 text-primary' : 'group-hover:text-primary'}`} />
-
-               {/* Dropdown Menu for Cities */}
-               {isCityOpen && (
-                 <div
-                   id={cityListboxId}
-                   role="listbox"
-                   className="absolute top-full left-0 mt-3 w-[calc(100%+2rem)] sm:w-full -ml-4 sm:ml-0 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 p-2 animate-in fade-in slide-in-from-top-2 motion-reduce:animate-none"
-                 >
-                   <button
-                     type="button"
-                     role="option"
-                     aria-selected={cityQuery === ""}
-                     onMouseDown={() => {
-                       setCityQuery("");
-                       setIsCityOpen(false);
-                     }}
-                     className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === "" ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
-                   >
-                     Любой город
-                   </button>
-                   {CITIES.map((city) => (
-                     <button
-                       type="button"
-                       role="option"
-                       aria-selected={cityQuery === city}
-                       key={city}
-                       onMouseDown={() => {
-                         setCityQuery(city);
-                         setIsCityOpen(false);
-                       }}
-                       className={`px-4 py-3 cursor-pointer rounded-xl font-bold transition-colors ${cityQuery === city ? 'bg-primary/5 text-primary' : 'text-slate-700 hover:bg-slate-50'}`}
-                     >
-                       {city}
-                     </button>
-                   ))}
-                 </div>
-               )}
-            </div>
-
-            <Button type="submit" size="lg" className="w-full sm:w-auto px-10 rounded-[1.5rem] shrink-0 font-bold text-lg shadow-lg shadow-primary/20">
-              Поиск
-            </Button>
-          </form>
+          <SearchWidget />
         </div>
       </section>
 
@@ -274,10 +111,10 @@ export default function Home() {
             <h2 className="text-3xl font-black text-slate-900">Как это работает</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">Всего три простых шага к здоровой улыбке без звонков и очередей</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <div className="hidden md:block absolute top-10 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-teal-100 via-cyan-200 to-blue-100 -z-10" />
-            
+
             <div className="space-y-4 flex flex-col items-center">
               <div className="w-20 h-20 bg-teal-50 text-teal-600 rounded-3xl flex items-center justify-center font-black text-3xl shadow-sm border border-teal-100">1</div>
               <h3 className="font-bold text-xl text-slate-900">Выберите врача</h3>
@@ -300,7 +137,7 @@ export default function Home() {
       {/* For Clinics / Partners Section */}
       <section id="partners" className="relative bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 lg:p-16 overflow-hidden scroll-mt-20 max-w-7xl mx-auto mt-12 mb-12 shadow-2xl">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        
+
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
@@ -308,13 +145,13 @@ export default function Home() {
                 <Star size={14} weight="fill" className="text-amber-400" /> B2B Платформа
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight">
-                Управляйте клиникой <br/><span className="text-primary">эффективнее</span>
+                Управляйте клиникой <br /><span className="text-primary">эффективнее</span>
               </h2>
               <p className="text-slate-300 text-lg max-w-md">
                 Подключите вашу стоматологию к платформе Dentist. Привлекайте новых пациентов, управляйте расписанием врачей и получайте детальную аналитику.
               </p>
             </div>
-            
+
             <ul className="space-y-4 text-slate-200 font-medium pb-2">
               <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-primary" /> Бесплатное размещение в каталоге</li>
               <li className="flex items-center gap-3"><div className="w-2 h-2 rounded-full bg-primary" /> Удобная CRM для администратора</li>
@@ -327,22 +164,22 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-          
+
           <div className="hidden lg:block relative h-full min-h-[300px]">
             {/* Minimal Dashboard Mockup for Visuals */}
             <div className="absolute top-1/2 right-0 -translate-y-1/2 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-md shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
-               <div className="flex items-center gap-2 mb-6 px-2">
-                 <div className="w-3 h-3 rounded-full bg-red-400" />
-                 <div className="w-3 h-3 rounded-full bg-amber-400" />
-                 <div className="w-3 h-3 rounded-full bg-emerald-400" />
-               </div>
-               <div className="space-y-4">
-                 <div className="h-24 bg-white/10 rounded-xl" />
-                 <div className="flex gap-4">
-                   <div className="h-32 flex-1 bg-white/10 rounded-xl" />
-                   <div className="h-32 flex-1 bg-white/10 rounded-xl" />
-                 </div>
-               </div>
+              <div className="flex items-center gap-2 mb-6 px-2">
+                <div className="w-3 h-3 rounded-full bg-red-400" />
+                <div className="w-3 h-3 rounded-full bg-amber-400" />
+                <div className="w-3 h-3 rounded-full bg-emerald-400" />
+              </div>
+              <div className="space-y-4">
+                <div className="h-24 bg-white/10 rounded-xl" />
+                <div className="flex gap-4">
+                  <div className="h-32 flex-1 bg-white/10 rounded-xl" />
+                  <div className="h-32 flex-1 bg-white/10 rounded-xl" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -355,7 +192,7 @@ export default function Home() {
             <h2 className="text-3xl font-black text-slate-900">Остались вопросы?</h2>
             <p className="text-slate-600 text-lg">Свяжитесь с нашей службой поддержки, и мы с радостью вам поможем.</p>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
             <Card className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
