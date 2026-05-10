@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useMemo } from "react";
 import { User, MapPin, Clock, Phone, CircleNotch, CreditCard, Sparkle, Check, CaretLeft } from "@phosphor-icons/react";
-import { Clinic, Dentist, TimeSlot } from "../../mocks/data";
+import { ClinicDetail as Clinic, Dentist, TimeSlot } from "../../services/api";
 import { Button, Card, CardContent, Input } from "../ui";
 
 // Mock additional mini-services (add-ons)
@@ -67,7 +67,7 @@ export default function BookingSummary({
       onConfirm({
         patientName,
         patientPhone,
-        serviceId: baseService.id,
+        serviceId: String(baseService.id),
         addonIds: selectedAddonIds,
       });
       setIsSubmitting(false);
@@ -106,7 +106,7 @@ export default function BookingSummary({
                 <div className="space-y-1">
                   <p className="font-bold text-lg text-slate-900 leading-snug">{baseService.name}</p>
                   <p className="text-sm text-slate-500 flex items-center gap-1.5">
-                    <Clock size={16} weight="bold" /> ~{baseService.durationMinutes} мин
+                    <Clock size={16} weight="bold" /> ~{baseService.duration_minutes} мин
                   </p>
                 </div>
                 <p className="text-xl font-black text-slate-900 shrink-0">
@@ -125,7 +125,7 @@ export default function BookingSummary({
                 </div>
                 <div className="flex gap-3 items-center text-slate-600">
                   <Clock size={16} weight="bold" className="text-slate-400" />
-                  <span className="text-sm">Дата: <strong className="text-slate-900">{date} в {timeSlot.startTime}</strong></span>
+                  <span className="text-sm">Дата: <strong className="text-slate-900">{date} в {timeSlot.start_time}</strong></span>
                 </div>
               </div>
             </CardContent>

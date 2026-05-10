@@ -1,8 +1,5 @@
 import { useMemo } from "react";
-import { Clinic } from "../mocks/data";
-import { matchServiceByFilter } from "../lib/search/catalog";
-
-export type ClinicSummary = Clinic & { dentist_count: number };
+import type { ClinicSummary } from "../services/api";
 
 type UseClinicsFilterArgs = {
   clinics: ClinicSummary[];
@@ -25,12 +22,18 @@ export function useClinicsFilter({ clinics, q, city, services }: UseClinicsFilte
       }
 
       if (services.length > 0) {
-        const offersAllServices = services.every((serviceId) =>
-          clinic.dentists.some((dentist) =>
-            dentist.services.some((service) => matchServiceByFilter(service.name, serviceId)),
-          ),
-        );
-        if (!offersAllServices) return false;
+        // If clinic has service_ids (from new Firestore schema), check if it matches all required services
+        if (clinic.service_ids && clinic.service_ids.length > 0) {
+          const hasRequiredServices = services.every((sId) => 
+            clinic.service_ids.includes(sId)
+          );
+          if (!hasRequiredServices) return false;
+        } else {
+          // If no service_ids on summary, we can't filter effectively without fetching details
+          // For now, we allow it to pass or fail based on business logic.
+          // Let's assume for demo purposes that if no tags exist, it doesn't match specific service filters.
+          return false;
+        }
       }
 
       return true;

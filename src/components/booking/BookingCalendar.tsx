@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { format, parseISO, isSameDay } from "date-fns";
 import { ru } from "date-fns/locale";
 import { Clock, Calendar as CalendarIcon } from "@phosphor-icons/react";
-import { TimeSlot } from "../../mocks/data";
+import { TimeSlot } from "../../services/api";
 import { Button } from "../ui";
 
 interface BookingCalendarProps {
@@ -28,7 +28,7 @@ export default function BookingCalendar({ timeSlots, onContinue }: BookingCalend
     return timeSlots.filter((slot) => {
       const slotDate = parseISO(slot.date);
       return isSameDay(slotDate, selectedDate);
-    }).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }).sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [timeSlots, selectedDate]);
 
   const handleContinue = () => {
@@ -101,14 +101,14 @@ export default function BookingCalendar({ timeSlots, onContinue }: BookingCalend
               {slotsForSelectedDate.map((slot) => {
                 const isSelected = selectedSlotId === slot.id;
                 
-                if (slot.isBooked) {
+                if (slot.is_booked) {
                   return (
                     <div
                       key={slot.id}
                       className="py-3 px-2 rounded-xl border border-slate-100 bg-slate-50 text-slate-400 text-center text-sm font-medium cursor-not-allowed opacity-60 line-through"
                       title="Время занято"
                     >
-                      {slot.startTime}
+                      {slot.start_time}
                     </div>
                   );
                 }
@@ -116,14 +116,14 @@ export default function BookingCalendar({ timeSlots, onContinue }: BookingCalend
                 return (
                   <button
                     key={slot.id}
-                    onClick={() => setSelectedSlotId(slot.id)}
+                    onClick={() => setSelectedSlotId(String(slot.id))}
                     className={`py-3 px-2 rounded-xl border font-medium text-sm transition-all ${
                       isSelected
                         ? "bg-primary/10 border-primary text-primary shadow-sm"
                         : "bg-white border-slate-200 text-slate-700 hover:border-primary/50 hover:text-primary"
                     }`}
                   >
-                    {slot.startTime}
+                    {slot.start_time}
                   </button>
                 );
               })}

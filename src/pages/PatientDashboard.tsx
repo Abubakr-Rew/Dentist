@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CalendarHeart,
   IdentificationCard,
   Sliders,
   SignOut as DoorOpen,
 } from "@phosphor-icons/react";
-import { useNavigate } from "react-router-dom";
-import { mockAppointments, Appointment } from "../mocks/data";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Button } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
+import { appointmentsApi } from "../services/api";
+import type { PatientAppointment } from "../services/api";
 import PatientAppointmentsTab from "../components/patient-dashboard/PatientAppointmentsTab";
 import PatientProfileTab from "../components/patient-dashboard/PatientProfileTab";
 
@@ -18,18 +19,45 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("appointments");
-  const [appointments, setAppointments] = useState<Appointment[]>(
-    mockAppointments.filter((a) => a.patientName === "Алексей Иванов"),
-  );
+  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user || user.role !== "patient") return;
+    
+    appointmentsApi.myAppointments()
+      .then(setAppointments)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user]);
 
   const upcomingApts = appointments.filter((a) => a.status === "upcoming");
   const completedCount = appointments.filter((a) => a.status === "completed").length;
 
-  const handleCancel = (id: string) => {
+  const handleCancel = async (id: string) => {
     if (window.confirm("Вы уверены, что хотите отменить запись?")) {
-      setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status: "cancelled" as const } : a)));
+      try {
+        await appointmentsApi.cancel(id);
+        setAppointments((prev) => prev.map((a) => (String(a.id) === String(id) ? { ...a, status: "cancelled" } : a)));
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка отмены");
+      }
     }
   };
+
+  if (!user || user.role !== "patient") {
+    return <Navigate to="/login" />;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+        Загрузка профиля...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">

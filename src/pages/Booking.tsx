@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { CaretLeft } from "@phosphor-icons/react";
-import { mockClinics, TimeSlot } from "../mocks/data";
+import { clinicsApi, dentistsApi, appointmentsApi } from "../services/api";
+import type { TimeSlot, ClinicDetail, Dentist } from "../services/api";
 import { Button } from "../components/ui";
 import BookingCalendar from "../components/booking/BookingCalendar";
 import BookingSummary from "../components/booking/BookingSummary";
@@ -15,11 +16,40 @@ export default function Booking() {
   const dentistId = searchParams.get("dentist");
 
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-
-  // Validate data
-  const clinic = mockClinics.find(c => c.id === clinicId);
-  const dentist = clinic?.dentists.find(d => d.id === dentistId);
   
+  const [clinic, setClinic] = useState<ClinicDetail | null>(null);
+  const [dentist, setDentist] = useState<Dentist | null>(null);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!clinicId || !dentistId) {
+      setLoading(false);
+      return;
+    }
+
+    Promise.all([
+      clinicsApi.get(clinicId),
+      dentistsApi.slots(dentistId)
+    ])
+    .then(([fetchedClinic, fetchedSlots]) => {
+      setClinic(fetchedClinic);
+      setDentist(fetchedClinic.dentists.find(d => String(d.id) === String(dentistId)) || null);
+      setTimeSlots(fetchedSlots);
+    })
+    .catch(console.error)
+    .finally(() => setLoading(false));
+  }, [clinicId, dentistId]);
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20 text-slate-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+        Подготовка записи...
+      </div>
+    );
+  }
+
   if (!clinic || !dentist) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -30,18 +60,30 @@ export default function Booking() {
     );
   }
 
-  const handleConfirm = (data: { patientName: string; patientPhone: string; serviceId: string; addonIds: string[] }) => {
-    navigate("/booking/success", { 
-      state: { 
-        clinicId, 
-        dentistId, 
-        serviceId: data.serviceId, 
-        addonIds: data.addonIds,
-        slot: selectedSlot,
-        patientName: data.patientName,
-        patientPhone: data.patientPhone
-      } 
-    });
+  const handleConfirm = async (data: { patientName: string; patientPhone: string; serviceId: string; addonIds: string[] }) => {
+    try {
+      if (!selectedSlot || !dentistId) return;
+      await appointmentsApi.book({
+        dentist_id: String(dentistId),
+        service_id: String(data.serviceId),
+        time_slot_id: String(selectedSlot.id)
+      });
+      
+      navigate("/booking/success", { 
+        state: { 
+          clinicId, 
+          dentistId, 
+          serviceId: data.serviceId, 
+          addonIds: data.addonIds,
+          slot: selectedSlot,
+          patientName: data.patientName,
+          patientPhone: data.patientPhone
+        } 
+      });
+    } catch (err) {
+      console.error("Booking error:", err);
+      alert("Ошибка при бронировании! Пожалуйста, убедитесь, что вы авторизованы.");
+    }
   };
 
   return (
@@ -62,13 +104,13 @@ export default function Booking() {
       <div className="bg-white p-4 sm:p-8 rounded-3xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
         {!selectedSlot ? (
           <BookingCalendar 
-            timeSlots={dentist.timeSlots} 
+            timeSlots={timeSlots} 
             onContinue={(slot) => setSelectedSlot(slot)} 
           />
         ) : (
           <BookingSummary
-            clinic={clinic}
-            dentist={dentist}
+            clinic={clinic as any}
+            dentist={dentist as any}
             date={selectedSlot.date}
             timeSlot={selectedSlot}
             initialServiceId={serviceId}

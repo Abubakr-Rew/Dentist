@@ -1,5 +1,5 @@
 import { Plus } from "@phosphor-icons/react";
-import { Clinic } from "../../mocks/data";
+import { ClinicDetail as Clinic } from "../../services/api";
 import { Button, Card, CardContent } from "../ui";
 
 interface ClinicDoctorsTabProps {
@@ -41,7 +41,7 @@ export default function ClinicDoctorsTab({ clinic }: ClinicDoctorsTabProps) {
                   {dentist.services.map((service) => (
                     <li key={service.id} className="flex items-center justify-between text-sm">
                       <span className="font-medium text-slate-700">
-                        {service.name} <span className="text-slate-400 text-xs">({service.durationMinutes} мин)</span>
+                        {service.name} <span className="text-slate-400 text-xs">({service.duration_minutes} мин)</span>
                       </span>
                       <span className="font-bold text-slate-900">{service.price.toLocaleString()} ₸</span>
                     </li>

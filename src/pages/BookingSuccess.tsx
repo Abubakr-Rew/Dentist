@@ -1,14 +1,29 @@
+import { useEffect, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { CheckCircle, Calendar, House, ArrowRight, Download, ShareNetwork } from "@phosphor-icons/react";
 import { Button } from "../components/ui";
-import { mockClinics } from "../mocks/data";
+import { clinicsApi } from "../services/api";
+import type { ClinicDetail } from "../services/api";
 
 export default function BookingSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
   const bookingData = location.state;
 
-  // In a real app, if data is missing, we might fetch it or show an error
+  const [clinic, setClinic] = useState<ClinicDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (bookingData?.clinicId) {
+      clinicsApi.get(bookingData.clinicId)
+        .then(setClinic)
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [bookingData]);
+
   if (!bookingData) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4 pt-20 animate-in fade-in duration-500">
@@ -19,10 +34,18 @@ export default function BookingSuccess() {
     );
   }
 
-  const { clinicId, dentistId, slot, serviceId } = bookingData;
-  const clinic = mockClinics.find(c => c.id === clinicId);
-  const dentist = clinic?.dentists.find(d => d.id === dentistId);
-  const service = dentist?.services.find(s => s.id === serviceId);
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20 text-slate-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+        Загрузка талона...
+      </div>
+    );
+  }
+
+  const { dentistId, slot, serviceId } = bookingData;
+  const dentist = clinic?.dentists.find(d => String(d.id) === String(dentistId));
+  const service = dentist?.services.find(s => String(s.id) === String(serviceId));
 
   return (
     <div className="max-w-md mx-auto py-12 px-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

@@ -2,19 +2,20 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Hospital, Star } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
-import { mockClinics } from "../mocks/data";
-import type { ClinicSummary } from "../hooks/useClinicsFilter";
+import { clinicsApi } from "../services/api";
+import type { ClinicSummary } from "../services/api";
 import SearchWidget from "../components/home/SearchWidget";
+import { seedDatabase } from "../seed";
 
 export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
 
   useEffect(() => {
-    const mapped = mockClinics.map((c) => ({
-      ...c,
-      dentist_count: c.dentists?.length || 0,
-    }));
-    setPopularClinics(mapped.slice(0, 3));
+    clinicsApi.list()
+      .then((clinics) => {
+        setPopularClinics(clinics.slice(0, 3));
+      })
+      .catch((err) => console.error("Error fetching popular clinics: ", err));
   }, []);
 
   return (
@@ -221,6 +222,17 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Development Seed Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button 
+          onClick={seedDatabase}
+          variant="secondary"
+          className="shadow-2xl border-primary/20 bg-white/90 backdrop-blur-sm hover:bg-white"
+        >
+          🔧 Seed Database
+        </Button>
+      </div>
     </div>
   );
 }

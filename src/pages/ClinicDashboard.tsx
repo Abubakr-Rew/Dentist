@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CalendarCheck,
   IdentificationCard,
@@ -7,9 +7,10 @@ import {
   Sliders,
   SignOut,
 } from "@phosphor-icons/react";
-import { useNavigate } from "react-router-dom";
-import { mockAppointments, mockClinics, Appointment, AppointmentStatus } from "../mocks/data";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { clinicsApi, appointmentsApi } from "../services/api";
+import type { ClinicDetail, ClinicAppointment } from "../services/api";
 import ClinicScheduleTab from "../components/clinic-dashboard/ClinicScheduleTab";
 import ClinicDoctorsTab from "../components/clinic-dashboard/ClinicDoctorsTab";
 import ClinicSettingsTab from "../components/clinic-dashboard/ClinicSettingsTab";
@@ -24,19 +25,54 @@ const SIDEBAR_TABS: { id: TabId; label: string; icon: typeof CalendarCheck }[] =
 
 export default function ClinicDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const clinic = mockClinics[0]; // Smile Clinic
+  const { user, logout } = useAuth();
+  
   const [activeTab, setActiveTab] = useState<TabId>("schedule");
-  const [selectedDate, setSelectedDate] = useState("2026-03-27");
-  const [appointments, setAppointments] = useState<Appointment[]>(
-    mockAppointments.filter((a) => a.clinicId === clinic.id),
-  );
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  
+  const [clinic, setClinic] = useState<ClinicDetail | null>(null);
+  const [appointments, setAppointments] = useState<ClinicAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleStatus = (id: string, newStatus: AppointmentStatus) => {
-    setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+  useEffect(() => {
+    if (!user || user.role !== "clinic") return;
+    
+    Promise.all([
+      clinicsApi.get(user.id),
+      appointmentsApi.clinicAppointments()
+    ])
+    .then(([fetchedClinic, fetchedAppointments]) => {
+      setClinic(fetchedClinic);
+      setAppointments(fetchedAppointments);
+    })
+    .catch(console.error)
+    .finally(() => setLoading(false));
+  }, [user]);
+
+  const toggleStatus = async (id: string, newStatus: string) => {
+    try {
+      await appointmentsApi.updateStatus(id, newStatus);
+      setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status: newStatus as any } : a)));
+    } catch (e) {
+      console.error(e);
+      alert("Ошибка при обновлении статуса");
+    }
   };
 
-  const getDentist = (dentistId: string) => clinic.dentists.find((d) => d.id === dentistId);
+  const getDentist = (dentistName: string) => clinic?.dentists.find((d) => d.name === dentistName);
+
+  if (!user || user.role !== "clinic") {
+     return <Navigate to="/login" />;
+  }
+
+  if (loading || !clinic) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+        Загрузка панели управления...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">

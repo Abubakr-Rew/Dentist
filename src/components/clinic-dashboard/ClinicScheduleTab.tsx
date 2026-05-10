@@ -9,16 +9,16 @@ import {
   Sliders,
   ListChecks,
 } from "@phosphor-icons/react";
-import { Appointment, AppointmentStatus, Dentist } from "../../mocks/data";
+import { ClinicAppointment, Dentist } from "../../services/api";
 import { Button, Card, CardContent, Input } from "../ui";
 import StatusDropdown from "./StatusDropdown";
 
 interface ClinicScheduleTabProps {
-  appointments: Appointment[];
+  appointments: ClinicAppointment[];
   selectedDate: string;
   onDateChange: (date: string) => void;
-  onStatusChange: (id: string, newStatus: AppointmentStatus) => void;
-  getDentist: (dentistId: string) => Dentist | undefined;
+  onStatusChange: (id: string, newStatus: string) => void;
+  getDentist: (dentistName: string) => Dentist | undefined;
 }
 
 export default function ClinicScheduleTab({
@@ -31,7 +31,7 @@ export default function ClinicScheduleTab({
   const filteredAppointments = useMemo(() => {
     return appointments
       .filter((a) => a.date === selectedDate)
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [appointments, selectedDate]);
 
   const stats = useMemo(() => {
@@ -136,26 +136,25 @@ export default function ClinicScheduleTab({
             <tbody className="divide-y divide-slate-100">
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((apt) => {
-                  const dentist = getDentist(apt.dentistId);
-                  const service = dentist?.services.find((s) => s.id === apt.serviceId);
+                  const dentist = getDentist(apt.dentist_name);
                   const isCompleted = apt.status === "completed";
 
                   return (
                     <tr key={apt.id} className={`group hover:bg-slate-50/50 transition-all ${isCompleted ? "opacity-70" : ""}`}>
                       <td className="px-6 py-5 align-top">
                         <div className="flex flex-col">
-                          <span className="text-sm font-black text-slate-900 leading-none mb-1">{apt.startTime}</span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{apt.endTime}</span>
+                          <span className="text-sm font-black text-slate-900 leading-none mb-1">{apt.start_time}</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{apt.end_time}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5 align-top">
                         <div className="flex flex-col">
                           <span className={`text-sm font-bold text-slate-900 leading-none mb-1 ${isCompleted ? "line-through decoration-slate-400" : ""}`}>
-                            {apt.patientName}
+                            {apt.patient_name}
                           </span>
                           <span className="text-[11px] font-medium text-slate-500 flex items-center gap-1">
                             <Phone size={10} />
-                            {apt.patientPhone}
+                            {apt.patient_phone}
                           </span>
                         </div>
                       </td>
@@ -166,12 +165,12 @@ export default function ClinicScheduleTab({
                         </div>
                       </td>
                       <td className="px-6 py-5 align-top">
-                        <span className="text-sm font-medium text-slate-600 truncate max-w-[150px] block">{service?.name}</span>
+                        <span className="text-sm font-medium text-slate-600 truncate max-w-[150px] block">{apt.service_name}</span>
                       </td>
                       <td className="px-6 py-5 align-top">
                         <StatusDropdown
                           status={apt.status}
-                          onStatusChange={(newStatus) => onStatusChange(apt.id, newStatus)}
+                          onStatusChange={(newStatus) => onStatusChange(String(apt.id), newStatus)}
                         />
                       </td>
                       <td className="px-6 py-5 align-top text-right">
@@ -202,8 +201,6 @@ export default function ClinicScheduleTab({
         <div className="md:hidden divide-y divide-slate-100">
           {filteredAppointments.length > 0 ? (
             filteredAppointments.map((apt) => {
-              const dentist = getDentist(apt.dentistId);
-              const service = dentist?.services.find((s) => s.id === apt.serviceId);
               const isCompleted = apt.status === "completed";
 
               return (
@@ -211,26 +208,25 @@ export default function ClinicScheduleTab({
                   <div className="flex justify-between items-start">
                     <div className="flex gap-4">
                       <div className="flex flex-col items-center">
-                        <span className="text-lg font-black text-slate-900 leading-none">{apt.startTime}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mt-1">{apt.endTime}</span>
+                        <span className="text-lg font-black text-slate-900 leading-none">{apt.start_time}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase leading-none mt-1">{apt.end_time}</span>
                       </div>
                       <div className="space-y-1">
                         <p className={`font-black text-slate-900 leading-none ${isCompleted ? "line-through decoration-slate-400" : ""}`}>
-                          {apt.patientName}
+                          {apt.patient_name}
                         </p>
-                        <p className="text-xs text-slate-500 font-medium">{service?.name}</p>
+                        <p className="text-xs text-slate-500 font-medium">{apt.service_name}</p>
                       </div>
                     </div>
                     <StatusDropdown
                       status={apt.status}
-                      onStatusChange={(newStatus) => onStatusChange(apt.id, newStatus)}
+                      onStatusChange={(newStatus) => onStatusChange(String(apt.id), newStatus)}
                       mobile
                     />
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-slate-50">
                     <div className="flex items-center gap-2 text-slate-500">
-                      <img src={dentist?.photo} alt={dentist?.name} className="w-6 h-6 rounded-full grayscale-50" />
-                      <span className="text-xs font-bold">{dentist?.name.split(" ").pop()}</span>
+                      <span className="text-xs font-bold">{apt.dentist_name}</span>
                     </div>
                     <div className="flex gap-2">
                       <button className="p-2 text-slate-400">

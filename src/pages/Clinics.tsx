@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { MagnifyingGlass, Star, Sliders, X, MapPin } from "@phosphor-icons/react";
 import { Button, Input, Card, CardContent } from "../components/ui";
-import { mockClinics } from "../mocks/data";
+import { clinicsApi } from "../services/api";
 import { useClinicsFilter } from "../hooks/useClinicsFilter";
-import type { ClinicSummary } from "../hooks/useClinicsFilter";
+import type { ClinicSummary } from "../services/api";
 import { buildCatalogSearchParams, CITIES, parseCatalogQuery, SERVICE_FILTERS } from "../lib/search/catalog";
 
 export default function Clinics() {
@@ -19,14 +19,12 @@ export default function Clinics() {
 
   useEffect(() => {
     setLoading(true);
-    setTimeout(() => {
-      const mapped = mockClinics.map(c => ({
-        ...c,
-        dentist_count: c.dentists?.length || 0,
-      }));
-      setClinics(mapped);
-      setLoading(false);
-    }, 500);
+    clinicsApi.list()
+      .then((data) => {
+        setClinics(data);
+      })
+      .catch((err) => console.error("Error fetching clinics:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

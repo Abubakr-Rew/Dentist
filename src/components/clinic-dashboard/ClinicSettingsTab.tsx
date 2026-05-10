@@ -1,5 +1,5 @@
 import { SealCheck } from "@phosphor-icons/react";
-import { Clinic } from "../../mocks/data";
+import { ClinicDetail as Clinic } from "../../services/api";
 import { Button, Card, CardContent, Input } from "../ui";
 
 interface ClinicSettingsTabProps {

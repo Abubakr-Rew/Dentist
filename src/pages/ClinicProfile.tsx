@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { MapPin, Star, Clock, Phone, GraduationCap, ArrowLeft, CheckCircle, CaretRight } from "@phosphor-icons/react";
 import { Button, Card, CardContent } from "../components/ui";
-import { mockClinics } from "../mocks/data";
+import { clinicsApi } from "../services/api";
+import type { ClinicDetail } from "../services/api";
 import Breadcrumbs from "../components/layout/Breadcrumbs";
 import { getClinicBreadcrumbs } from "../lib/routes/breadcrumbs";
 
@@ -11,7 +12,26 @@ export default function ClinicProfile() {
   const navigate = useNavigate();
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
-  const clinic = mockClinics.find((c) => c.id === id);
+  const [clinic, setClinic] = useState<ClinicDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    clinicsApi.get(id)
+      .then(setClinic)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20 text-slate-500">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+        Загрузка клиники...
+      </div>
+    );
+  }
 
   if (!clinic) {
     return (
@@ -120,7 +140,7 @@ export default function ClinicProfile() {
               {allServices.map((service) => (
                 <button
                   key={service.id}
-                  onClick={() => setSelectedServiceId(service.id)}
+                  onClick={() => setSelectedServiceId(String(service.id))}
                   className="bg-white text-left p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-primary hover:shadow-md transition-all group focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   <div className="mb-4">
@@ -129,7 +149,7 @@ export default function ClinicProfile() {
                     </h3>
                     <p className="text-sm text-slate-500 flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />
-                      ~{service.durationMinutes} мин
+                      ~{service.duration_minutes} мин
                     </p>
                   </div>
                   <div className="pt-4 border-t border-slate-100 w-full flex items-center justify-between">
@@ -196,7 +216,7 @@ export default function ClinicProfile() {
                         <div className="flex-1">
                           <p className="text-sm text-slate-500 flex items-center gap-2 mb-1">
                             <Clock size={16} weight="bold" className="text-slate-400" /> 
-                            Длительность: <span>~{dentService.durationMinutes} мин</span>
+                            Длительность: <span>~{dentService.duration_minutes} мин</span>
                           </p>
                         </div>
 

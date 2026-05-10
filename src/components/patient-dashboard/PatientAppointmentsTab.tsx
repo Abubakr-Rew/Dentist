@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin as Hospital,
   SealCheck,
@@ -6,11 +6,11 @@ import {
   Tooth,
   Calendar,
 } from "@phosphor-icons/react";
-import { Appointment, mockClinics } from "../../mocks/data";
+import type { PatientAppointment } from "../../services/api";
 import { Button, Card, CardContent } from "../ui";
 
 interface PatientAppointmentsTabProps {
-  appointments: Appointment[];
+  appointments: PatientAppointment[];
   onCancel: (id: string) => void;
 }
 
@@ -19,10 +19,6 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
 
   const upcomingApts = appointments.filter((a) => a.status === "upcoming");
   const historyApts = appointments.filter((a) => a.status !== "upcoming");
-
-  const getClinic = (id: string) => mockClinics.find((c) => c.id === id);
-  const getDentist = (clinicId: string, dentistId: string) =>
-    getClinic(clinicId)?.dentists.find((d) => d.id === dentistId);
 
   return (
     <>
@@ -37,10 +33,6 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
         {upcomingApts.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {upcomingApts.map((apt) => {
-              const clinic = getClinic(apt.clinicId);
-              const dentist = getDentist(apt.clinicId, apt.dentistId);
-              const service = dentist?.services.find((s) => s.id === apt.serviceId);
-
               return (
                 <Card key={apt.id} className="group border-slate-200 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all active:scale-[0.995]">
                   <CardContent className="p-0">
@@ -53,7 +45,7 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                         <span className="text-3xl font-black text-slate-900 leading-none">
                           {new Date(apt.date).getDate()}
                         </span>
-                        <span className="text-sm font-bold text-primary">{apt.startTime}</span>
+                        <span className="text-sm font-bold text-primary">{apt.start_time}</span>
                       </div>
 
                       {/* Details */}
@@ -62,21 +54,14 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-tighter">
                               <Tooth className="w-3.5 h-3.5" />
-                              <span>{service?.name}</span>
+                              <span>{apt.service_name || "Услуга не указана"}</span>
                             </div>
-                            <Link to={`/clinics/${apt.clinicId}`} className="text-lg font-black text-slate-900 hover:text-primary transition-colors block">
-                              {clinic?.name}
-                            </Link>
+                            <h3 className="text-lg font-black text-slate-900 block">
+                              {apt.clinic_name || "Клиника"}
+                            </h3>
                             <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5">
-                              Врач: <span className="text-slate-900 font-bold">{dentist?.name}</span>
+                              Врач: <span className="text-slate-900 font-bold">{apt.dentist_name || "Не указан"}</span>
                             </p>
-                          </div>
-                          <div className="hidden sm:block">
-                            <img
-                              src={clinic?.image}
-                              alt={clinic?.name}
-                              className="w-16 h-16 rounded-2xl object-cover border border-slate-100 shadow-sm"
-                            />
                           </div>
                         </div>
 
@@ -84,13 +69,13 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                           <div className="flex items-center gap-4 text-xs text-slate-400 font-bold">
                             <div className="flex items-center gap-1.5">
                               <Hospital className="w-3.5 h-3.5" />
-                              {clinic?.address}
+                              {apt.clinic_address || "Адрес скрыт"}
                             </div>
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onCancel(apt.id)}
+                            onClick={() => onCancel(String(apt.id))}
                             className="text-red-500 border-red-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all font-bold px-4"
                           >
                             Отменить
@@ -134,9 +119,6 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100">
               {historyApts.map((apt) => {
-                const clinic = getClinic(apt.clinicId);
-                const dentist = getDentist(apt.clinicId, apt.dentistId);
-                const service = dentist?.services.find((s) => s.id === apt.serviceId);
                 const isCompleted = apt.status === "completed";
 
                 return (
@@ -146,9 +128,9 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                         {isCompleted ? <SealCheck size={20} weight="bold" /> : <Prohibit size={20} weight="bold" />}
                       </div>
                       <div className="space-y-0.5">
-                        <p className="font-bold text-slate-900 text-sm leading-tight">{service?.name}</p>
+                        <p className="font-bold text-slate-900 text-sm leading-tight">{apt.service_name || "Услуга не указана"}</p>
                         <p className="text-xs text-slate-500">
-                          {clinic?.name} • {dentist?.name}
+                          {apt.clinic_name || "Клиника"} • {apt.dentist_name || "Не указан"}
                         </p>
                       </div>
                     </div>
@@ -158,7 +140,7 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                         <p className="text-sm font-bold text-slate-900">
                           {new Date(apt.date).toLocaleDateString("ru-RU")}
                         </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{apt.startTime}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{apt.start_time}</p>
                       </div>
                       <div
                         className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
