@@ -1,6 +1,6 @@
 // ── Auth ─────────────────────────────────────────────────────────────────────
 import { auth, db } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export interface AuthUser {
@@ -88,7 +88,7 @@ export const authApi = {
 };
 
 // ── Clinics ───────────────────────────────────────────────────────────────────
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, increment } from "firebase/firestore";
 
 export interface ClinicSummary {
   id: string | number;
@@ -157,6 +157,54 @@ export const clinicsApi = {
     
     return clinic as ClinicDetail;
   },
+
+  updateClinic: async (id: string, data: Partial<ClinicSummary>) => {
+    await updateDoc(doc(db, "users", id), data);
+  },
+
+  addDentist: async (clinicId: string, dentistData: Omit<Dentist, "id">) => {
+    const docRef = await addDoc(collection(db, `users/${clinicId}/dentists`), dentistData);
+    // Increment dentist_count on the clinic document
+    await updateDoc(doc(db, "users", clinicId), { dentist_count: increment(1) });
+    return { id: docRef.id };
+  },
+
+  updateDentist: async (clinicId: string, dentistId: string, data: Partial<Dentist>) => {
+    await updateDoc(doc(db, `users/${clinicId}/dentists`, dentistId), data);
+  },
+
+  addServiceToDentist: async (clinicId: string, dentistId: string, service: Service) => {
+    const dentistRef = doc(db, `users/${clinicId}/dentists`, dentistId);
+    const snap = await getDoc(dentistRef);
+    if (!snap.exists()) throw new Error("Dentist not found");
+    const existing = snap.data().services || [];
+    await updateDoc(dentistRef, { services: [...existing, service] });
+  },
+
+  getSlots: async (clinicId: string, dentistId: string) => {
+    const q = query(
+      collection(db, "time_slots"),
+      where("clinic_id", "==", clinicId),
+      where("dentist_id", "==", dentistId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as any)) as (TimeSlot & { clinic_id: string })[];
+  },
+
+  addTimeSlots: async (clinicId: string, dentistId: string, dates: string[], times: {start: string, end: string}[]) => {
+    for (const date of dates) {
+      for (const time of times) {
+        await addDoc(collection(db, "time_slots"), {
+          clinic_id: clinicId,
+          dentist_id: dentistId,
+          date,
+          start_time: time.start,
+          end_time: time.end,
+          is_booked: false
+        });
+      }
+    }
+  }
 };
 
 // ── Dentists ──────────────────────────────────────────────────────────────────
@@ -182,7 +230,17 @@ export const dentistsApi = {
       q = query(q, where("date", "==", date));
     }
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() } as any)) as TimeSlot[];
+    const allSlots = snap.docs.map(d => ({ id: d.id, ...d.data() } as any)) as TimeSlot[];
+
+    const now = new Date();
+    const currentDateStr = now.toISOString().split('T')[0];
+    const currentHourStr = now.toTimeString().slice(0, 5); // "HH:MM"
+
+    return allSlots.filter(slot => {
+      if (slot.date < currentDateStr) return false;
+      if (slot.date === currentDateStr && slot.start_time <= currentHourStr) return false;
+      return true;
+    });
   },
 };
 
@@ -214,6 +272,8 @@ export interface ClinicAppointment {
   dentist_name: string;
   service_name: string;
   price: number;
+  time_slot_id?: string;
+  clinic_id?: string;
 }
 
 export const appointmentsApi = {
@@ -221,11 +281,45 @@ export const appointmentsApi = {
     const user = auth.currentUser;
     if (!user) throw new Error("Not authenticated");
     
-    // In a real app, you would fetch dentist/service details here to denormalize into the appointment
-    
+    // Fetch slot info
+    const slotSnap = await getDoc(doc(db, "time_slots", String(data.time_slot_id)));
+    if (!slotSnap.exists()) throw new Error("Slot not found");
+    const slotData = slotSnap.data();
+    if (slotData.is_booked) throw new Error("Slot unavailable");
+
+    // Fetch user (patient) info
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    const userData = userSnap.data() as any;
+
+    // Fetch clinic info
+    const clinicSnap = await getDoc(doc(db, "users", slotData.clinic_id));
+    const clinicData = clinicSnap.data() as any;
+
+    // Fetch dentist info
+    const dentistSnap = await getDoc(doc(db, `users/${slotData.clinic_id}/dentists`, String(data.dentist_id)));
+    const dentistData = dentistSnap.data() as any;
+
+    // Find service
+    const service = dentistData.services?.find((s: any) => String(s.id) === String(data.service_id));
+
     const docRef = await addDoc(collection(db, "appointments"), {
-      ...data,
       patient_id: user.uid,
+      patient_name: userData.name || "Пациент",
+      patient_phone: userData.phone || "",
+      clinic_id: slotData.clinic_id,
+      clinic_name: clinicData.clinicName || clinicData.name || "Клиника",
+      clinic_address: clinicData.address || "",
+      clinic_city: clinicData.city || "",
+      dentist_id: String(data.dentist_id),
+      dentist_name: dentistData.name || "Врач",
+      specialization: dentistData.specialization || "",
+      service_id: String(data.service_id),
+      service_name: service?.name || "",
+      price: service?.price || 0,
+      time_slot_id: String(data.time_slot_id),
+      date: slotData.date,
+      start_time: slotData.start_time,
+      end_time: slotData.end_time,
       status: "upcoming",
       createdAt: new Date().toISOString()
     });
@@ -260,5 +354,23 @@ export const appointmentsApi = {
 
   cancel: async (id: number | string) => {
     await deleteDoc(doc(db, "appointments", String(id)));
+  },
+};
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export const usersApi = {
+  updateProfile: async (data: { name?: string; phone?: string; birthDate?: string }) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Not authenticated");
+    await updateDoc(doc(db, "users", user.uid), data);
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const user = auth.currentUser;
+    if (!user || !user.email) throw new Error("Not authenticated");
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
   },
 };

@@ -6,6 +6,7 @@ import {
   Tooth,
   Sliders,
   SignOut,
+  Clock,
 } from "@phosphor-icons/react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -14,13 +15,17 @@ import type { ClinicDetail, ClinicAppointment } from "../services/api";
 import ClinicScheduleTab from "../components/clinic-dashboard/ClinicScheduleTab";
 import ClinicDoctorsTab from "../components/clinic-dashboard/ClinicDoctorsTab";
 import ClinicSettingsTab from "../components/clinic-dashboard/ClinicSettingsTab";
+import ClinicSlotsTab from "../components/clinic-dashboard/ClinicSlotsTab";
+import ClinicPatientsTab from "../components/clinic-dashboard/ClinicPatientsTab";
 
-type TabId = "schedule" | "doctors" | "settings";
+type TabId = "schedule" | "doctors" | "slots" | "settings" | "patients";
 
 const SIDEBAR_TABS: { id: TabId; label: string; icon: typeof CalendarCheck }[] = [
   { id: "schedule", label: "Расписание", icon: CalendarCheck },
   { id: "doctors", label: "Врачи и Услуги", icon: BriefcaseMetal },
+  { id: "slots", label: "Слоты", icon: Clock },
   { id: "settings", label: "Профиль клиники", icon: Sliders },
+  { id: "patients", label: "Пациенты", icon: IdentificationCard },
 ];
 
 export default function ClinicDashboard() {
@@ -85,7 +90,7 @@ export default function ClinicDashboard() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Админ-панель</p>
-              <p className="text-sm font-black text-slate-900 leading-tight">Smile Clinic</p>
+              <p className="text-sm font-black text-slate-900 leading-tight">{clinic?.clinicName || clinic?.name || "Клиника"}</p>
             </div>
           </div>
         </div>
@@ -108,13 +113,6 @@ export default function ClinicDashboard() {
               </button>
             );
           })}
-          <button
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 transition-all opacity-60 cursor-not-allowed"
-            disabled
-          >
-            <IdentificationCard size={18} />
-            Пациенты
-          </button>
         </nav>
 
         <div className="p-6 space-y-2">
@@ -149,7 +147,11 @@ export default function ClinicDashboard() {
 
         {activeTab === "doctors" && <ClinicDoctorsTab clinic={clinic} />}
 
+        {activeTab === "slots" && <ClinicSlotsTab clinic={clinic} appointments={appointments} />}
+
         {activeTab === "settings" && <ClinicSettingsTab clinic={clinic} />}
+
+        {activeTab === "patients" && <ClinicPatientsTab appointments={appointments} />}
       </main>
     </div>
   );

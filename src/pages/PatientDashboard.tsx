@@ -35,14 +35,12 @@ export default function PatientDashboard() {
   const completedCount = appointments.filter((a) => a.status === "completed").length;
 
   const handleCancel = async (id: string) => {
-    if (window.confirm("Вы уверены, что хотите отменить запись?")) {
-      try {
-        await appointmentsApi.cancel(id);
-        setAppointments((prev) => prev.map((a) => (String(a.id) === String(id) ? { ...a, status: "cancelled" } : a)));
-      } catch (err) {
-        console.error(err);
-        alert("Ошибка отмены");
-      }
+    try {
+      await appointmentsApi.cancel(id);
+      setAppointments((prev) => prev.map((a) => (String(a.id) === String(id) ? { ...a, status: "cancelled" } : a)));
+    } catch (err) {
+      console.error(err);
+      alert("Ошибка отмены");
     }
   };
 

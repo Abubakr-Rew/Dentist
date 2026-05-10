@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin as Hospital,
@@ -16,9 +17,17 @@ interface PatientAppointmentsTabProps {
 
 export default function PatientAppointmentsTab({ appointments, onCancel }: PatientAppointmentsTabProps) {
   const navigate = useNavigate();
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   const upcomingApts = appointments.filter((a) => a.status === "upcoming");
   const historyApts = appointments.filter((a) => a.status !== "upcoming");
+
+  const handleConfirmCancel = () => {
+    if (cancelId) {
+      onCancel(cancelId);
+      setCancelId(null);
+    }
+  };
 
   return (
     <>
@@ -40,12 +49,12 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                       {/* Date Badge */}
                       <div className="bg-slate-50 border-r border-slate-100 p-6 sm:w-40 flex flex-col items-center justify-center text-center space-y-1">
                         <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                          {new Date(apt.date).toLocaleString("ru-RU", { month: "short" }).replace(".", "")}
+                          {apt.date ? new Date(apt.date).toLocaleString("ru-RU", { month: "short" }).replace(".", "") : "ДАТА"}
                         </span>
                         <span className="text-3xl font-black text-slate-900 leading-none">
-                          {new Date(apt.date).getDate()}
+                          {apt.date ? new Date(apt.date).getDate() : "—"}
                         </span>
-                        <span className="text-sm font-bold text-primary">{apt.start_time}</span>
+                        <span className="text-sm font-bold text-primary">{apt.start_time || "—"}</span>
                       </div>
 
                       {/* Details */}
@@ -75,7 +84,7 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onCancel(String(apt.id))}
+                            onClick={() => setCancelId(String(apt.id))}
                             className="text-red-500 border-red-100 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all font-bold px-4"
                           >
                             Отменить
@@ -138,9 +147,9 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
                     <div className="flex items-center justify-between sm:justify-end gap-6 pl-14 sm:pl-0">
                       <div className="text-right">
                         <p className="text-sm font-bold text-slate-900">
-                          {new Date(apt.date).toLocaleDateString("ru-RU")}
+                          {apt.date ? new Date(apt.date).toLocaleDateString("ru-RU") : "Дата неизвестна"}
                         </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{apt.start_time}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{apt.start_time || "—"}</p>
                       </div>
                       <div
                         className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${
@@ -158,6 +167,38 @@ export default function PatientAppointmentsTab({ appointments, onCancel }: Patie
             </div>
           </div>
         </section>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {cancelId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="space-y-2 text-center">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Prohibit size={32} weight="bold" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900">Отменить запись?</h3>
+              <p className="text-sm text-slate-500 font-medium">
+                Вы уверены, что хотите отменить эту запись? Это действие нельзя будет отменить.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button 
+                variant="outline" 
+                className="w-full font-bold" 
+                onClick={() => setCancelId(null)}
+              >
+                Назад
+              </Button>
+              <Button 
+                className="w-full font-bold bg-red-500 hover:bg-red-600 text-white" 
+                onClick={handleConfirmCancel}
+              >
+                Да, отменить
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

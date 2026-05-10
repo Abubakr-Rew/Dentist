@@ -5,7 +5,6 @@ import { Button, Card, CardContent } from "../components/ui";
 import { clinicsApi } from "../services/api";
 import type { ClinicSummary } from "../services/api";
 import SearchWidget from "../components/home/SearchWidget";
-import { seedDatabase } from "../seed";
 
 export default function Home() {
   const [popularClinics, setPopularClinics] = useState<ClinicSummary[]>([]);
@@ -223,16 +222,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Development Seed Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button 
-          onClick={seedDatabase}
-          variant="secondary"
-          className="shadow-2xl border-primary/20 bg-white/90 backdrop-blur-sm hover:bg-white"
-        >
-          🔧 Seed Database
-        </Button>
-      </div>
     </div>
   );
 }
