@@ -1,11 +1,45 @@
-Griffith: Почему большинство мужчин посвящают себя кровопролитию? Вы спросили меня об этом на охоте, моя госпожа. 
+# Dentist - Dental Clinic Appointment Platform
 
-Griffith: Действительно, у мужчин может быть варварская сторона, как вы и указали. Однако это инструмент, который можно использовать как для обретения, так и для защиты ценных вещей. Это обоюдоострый меч.
+A full-stack web application designed to bridge the gap between patients and dental clinics. The platform streamlines clinic discovery, simplifies appointment booking, and provides role-based access for both patients and clinic administrators.
 
-Princess Charlotte: Ценные вещи? Такие как семья... или возлюбленные?
+## 🚀 Tech Stack
 
-Griffith: Для некоторых мужчин такие вещи действительно дороги. Но есть еще одна вещь, более ценная для мужчины, чем все остальное... То, к чему человек стремится ради себя, а не ради кого-то другого. Мечта. Некоторые мечтают править миром, посвящая всю свою жизнь созданию идеального меча. В то время как некоторые могут быть достигнуты в одиночку, некоторые подобны бурям... разрушающим сотни или тысячи других мечтаний на своем пути. Мечта может укрепить жизнь человека, или же принести ему страдания. Мечта может заставить человека почувствовать себя живым, или же убить его. Даже если человек будет покинут этой мечтой, часть ее останется тлеть в его сердце. Каждый человек представлял себе свою жизнь таким образом, хотя бы раз. Жизнь как мученика своей мечты, своего Бога. Просто существовать только потому, что ты родился - это та самая идея, которую я ненавижу. Я этого терпеть не могу.
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS (v4)
+- **Routing**: React Router
+- **Backend & Database**: Firebase (Authentication, Firestore)
+- **Deployment & PWA**: Vite PWA Plugin
 
-Princess Charlotte: Вы восхитительны... Ваши друзья, должно быть, тоже очарованы вашим обаянием.
+## ✨ Features
 
-Griffith: Они мои благородные солдаты. Они важные товарищи, которые посвящают себя моей мечте. Однако они не обязательно мои друзья. В моих глазах настоящий друг - это тот, кто никогда не цепляется за чужую мечту. Независимый человек, который может найти свою собственную причину жить и следовать этому пути без руководства. И если кто-то попытается сокрушить его мечту, защищайте ее всем сердцем и душой. Даже если этим человеком окажусь я. Для меня настоящий друг - это тот, кого я считаю своим равным.
+- **Role-Based Dashboards**: Tailored interfaces and functionalities for `Patient` and `Clinic` roles.
+- **Secure Authentication**: User registration, login, and session management powered by Firebase Auth.
+- **Clinic Discovery**: Patients can seamlessly browse, filter, and view detailed profiles of dental clinics.
+- **Dynamic Booking System**: Interactive appointment scheduling and confirmation flows.
+- **Responsive Design**: Fully responsive, mobile-first UI built with modern CSS frameworks.
+
+## 🛠️ Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher recommended)
+- Firebase Project setup
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add your Firebase configuration.
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 📝 License
+
+This project is licensed under the MIT License.
